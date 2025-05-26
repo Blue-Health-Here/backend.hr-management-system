@@ -1,30 +1,29 @@
 import { injectable, inject } from "tsyringe";
 import { ControllerBase } from "./generics/controller-base";
 import { FastifyReply, FastifyRequest, preHandlerHookHandler, RouteHandlerMethod } from "fastify";
-import {  UserService } from "../bl";
+import { UserService } from "../bl";
 import { ExtendedRequest, ILoginRequest, ISignUpRequest, IResendCodeRequest, IForgotPasswordRequest, IResetPasswordRequest, IVerifyAccountRequest } from "../models";
 import { signUpSchema, resendCodeSchema, verifyAccountSchema, loginSchema, resetPasswordSchema, forgotPasswordSchema } from "../models/payload-schemas/index";
-import { authorize, payloadValidator } from "../middlewares";
-
+import { authorize } from "../middlewares";
+import { payloadValidator, bodyValidator, queryValidator } from "../middlewares/payload-validator";
 
 @injectable()
 export class AuthController extends ControllerBase {
     constructor(
         @inject('UserService') private readonly userService: UserService,
-
     ) {
         super('/auth');
         this.endPoints = [
             {
                 method: 'POST',
                 path: 'login',
-                middlewares: [payloadValidator(loginSchema)],
+                middlewares: [bodyValidator(loginSchema)],
                 handler: this.login as RouteHandlerMethod
             },
             {
                 method: 'POST',
                 path: 'signup',
-                middlewares: [payloadValidator(signUpSchema)],
+                middlewares: [bodyValidator(signUpSchema)],
                 handler: this.signUp as RouteHandlerMethod
             },
             {
@@ -41,33 +40,29 @@ export class AuthController extends ControllerBase {
             {
                 method: 'GET',
                 path: 'account-verify',
-                // middlewares: [payloadValidator(verifyAccountSchema)],
+                middlewares: [queryValidator(verifyAccountSchema)],
                 handler: this.verifyAccount as RouteHandlerMethod
             },
             {
                 method: 'GET',
                 path: 'resend-code',
-                // middlewares: [payloadValidator(resendCodeSchema)],
+                middlewares: [queryValidator(resendCodeSchema)],
                 handler: this.resendCode as RouteHandlerMethod
             },
             {
                 method: 'GET',
                 path: 'forgot-password',
-                // middlewares: [payloadValidator(forgotPasswordSchema)],
+                middlewares: [queryValidator(forgotPasswordSchema)],
                 handler: this.forgotPassword as RouteHandlerMethod
             },
             {
                 method: 'POST',
                 path: 'reset-password',
-                middlewares: [payloadValidator(resetPasswordSchema)],
+                middlewares: [bodyValidator(resetPasswordSchema)],
                 handler: this.resetPassword as RouteHandlerMethod
             }
         ];
     }
-
-
-
-
 
     private login = async (req: FastifyRequest<{Body: ILoginRequest}>, res: FastifyReply) => {
         let { token, ...rest} = await this.userService.login(req.body);
@@ -105,13 +100,12 @@ export class AuthController extends ControllerBase {
     }
 
     private logout = async (req: FastifyRequest, res: FastifyReply) => {
-
         res.clearCookie('auth_token',{sameSite: 'lax', secure: true, httpOnly: true, path: '/'})
-            res.send({message: 'Logged out successfully'});
+        res.send({message: 'Logged out successfully'});
     }
 
     private resendCode = async (req: FastifyRequest<{ Querystring: IResendCodeRequest }>, res: FastifyReply) => {
-        let user  = await this.userService.resendCode(req.query);
+        let user = await this.userService.resendCode(req.query);
         res.send(user);
     }
 

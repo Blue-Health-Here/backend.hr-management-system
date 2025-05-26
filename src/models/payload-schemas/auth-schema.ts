@@ -29,7 +29,9 @@ export const verifyAccountSchema = z.object({
 
 export const resendCodeSchema = z.object({
     email: z.string().email("Invalid email format"),
-    type: z.enum(['accountVerify', 'forgotPassword']),
+    type: z.enum(['accountVerify', 'forgotPassword'], {
+        errorMap: () => ({ message: "Type must be either 'accountVerify' or 'forgotPassword'" })
+    }),
 });
 
 export const forgotPasswordSchema = z.object({
