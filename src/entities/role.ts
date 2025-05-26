@@ -8,8 +8,8 @@ import { Privilege } from "./privilege";
 import { User } from "./user";
 
 @Entity('Role')
-@Unique(["companyId", "name"])
 @Unique(["companyId", "code"])
+@Unique(["companyId", "name"])
 export class Role extends EntityBase implements IToResponseBase<Role, IRoleResponse> {
     @Column({ nullable: false, type: 'text'})
     name!: string;

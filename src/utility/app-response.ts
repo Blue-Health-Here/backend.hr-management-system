@@ -25,7 +25,7 @@ export class AppResponse {
       // success: false,
       message,
       ...(errors ? { errors } : {}),
-      // ...(stack ? { stack } : {})
+      ...(stack ? { stack } : {})
     };
   }
 }
