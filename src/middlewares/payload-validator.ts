@@ -12,6 +12,25 @@ interface ValidationConfig {
   params?: ZodSchema;
 }
 
+// Helper function to validate a single field type
+const validateField = async (
+  schema: ZodSchema, 
+  data: any, 
+  type: ValidationType
+): Promise<Array<{ field: string; message: string; type: ValidationType }>> => {
+  const parsed = await schema.safeParseAsync(data);
+  
+  if (!parsed.success) {
+    return parsed.error.errors.map(err => ({
+      field: err.path.join('.'),
+      message: err.message,
+      type
+    }));
+  }
+  
+  return [];
+};
+
 // Enhanced validator that can handle body, query, and params
 export const payloadValidator = (config: ValidationConfig | ZodSchema): preHandlerHookHandler => {
   return async (req: FastifyRequest, res: FastifyReply) => {
@@ -24,46 +43,24 @@ export const payloadValidator = (config: ValidationConfig | ZodSchema): preHandl
       validationConfig = config as ValidationConfig;
     }
 
-    const errors: Array<{ field: string; message: string; type: ValidationType }> = [];
+    // Collect all validation promises
+    const validationPromises: Promise<Array<{ field: string; message: string; type: ValidationType }>>[] = [];
 
-    // Validate body
     if (validationConfig.body) {
-      const parsed = await validationConfig.body.safeParseAsync(req.body);
-      if (!parsed.success) {
-        const bodyErrors = parsed.error.errors.map(err => ({
-          field: err.path.join('.'),
-          message: err.message,
-          type: 'body' as ValidationType
-        }));
-        errors.push(...bodyErrors);
-      }
+      validationPromises.push(validateField(validationConfig.body, req.body, 'body'));
     }
 
-    // Validate query parameters
     if (validationConfig.query) {
-      const parsed = await validationConfig.query.safeParseAsync(req.query);
-      if (!parsed.success) {
-        const queryErrors = parsed.error.errors.map(err => ({
-          field: err.path.join('.'),
-          message: err.message,
-          type: 'query' as ValidationType
-        }));
-        errors.push(...queryErrors);
-      }
+      validationPromises.push(validateField(validationConfig.query, req.query, 'query'));
     }
 
-    // Validate route parameters
     if (validationConfig.params) {
-      const parsed = await validationConfig.params.safeParseAsync(req.params);
-      if (!parsed.success) {
-        const paramErrors = parsed.error.errors.map(err => ({
-          field: err.path.join('.'),
-          message: err.message,
-          type: 'params' as ValidationType
-        }));
-        errors.push(...paramErrors);
-      }
+      validationPromises.push(validateField(validationConfig.params, req.params, 'params'));
     }
+
+    // Execute all validations concurrently
+    const validationResults = await Promise.all(validationPromises);
+    const errors = validationResults.flat();
 
     // If there are any validation errors, handle them
     if (errors.length > 0) {
@@ -83,14 +80,11 @@ export const payloadValidator = (config: ValidationConfig | ZodSchema): preHandl
 };
 
 // Convenience functions for single-type validation
-export const bodyValidator = (zodSchema: ZodSchema): preHandlerHookHandler => {
-  return payloadValidator({ body: zodSchema });
-};
+export const bodyValidator = (zodSchema: ZodSchema): preHandlerHookHandler => 
+  payloadValidator({ body: zodSchema });
 
-export const queryValidator = (zodSchema: ZodSchema): preHandlerHookHandler => {
-  return payloadValidator({ query: zodSchema });
-};
+export const queryValidator = (zodSchema: ZodSchema): preHandlerHookHandler => 
+  payloadValidator({ query: zodSchema });
 
-export const paramsValidator = (zodSchema: ZodSchema): preHandlerHookHandler => {
-  return payloadValidator({ params: zodSchema });
-};
+export const paramsValidator = (zodSchema: ZodSchema): preHandlerHookHandler => 
+  payloadValidator({ params: zodSchema });
