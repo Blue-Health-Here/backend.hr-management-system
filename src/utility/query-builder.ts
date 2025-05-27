@@ -17,7 +17,7 @@ export const buildQuery = <T extends CompanyEntityBase | EntityBase>(fetchReques
     query.where = queryOptionsMapper(fetchRequest.queryOptionsRequest?.filtersRequest ?? [], getOnlyActive, dontGetDeleted, companyId);
     query.order = sortOptions;
     query.relations = fetchRequest.queryOptionsRequest?.includes as (FindOptionsRelations<T> | undefined);
-    if (pagedRequest) {
+    if (pagedRequest && !pagedRequest.getAllRecords) {
         query.skip = (pagedRequest.pageNo - 1) * pagedRequest.pageSize;
         query.take = pagedRequest.pageSize;
     }
