@@ -12,3 +12,4 @@ export * from './json-utility';
 export * from './db-error';
 export * from './app-response';
 export * from './mail-utility';
+export * from './general-utility';

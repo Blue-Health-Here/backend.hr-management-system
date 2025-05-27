@@ -7,8 +7,8 @@ import { ExtendedRequest } from "../models/inerfaces/extended-Request";
 import { Department } from "../entities";
 import { DepartmentService } from "../bl";
 import { authorize } from "../middlewares/authentication";
-import { payloadValidator, bodyValidator, queryValidator } from "../middlewares/payload-validator";
-import { createDepartmentSchema } from "../models/payload-schemas";
+import { payloadValidator, bodyValidator, queryValidator, paramsValidator } from "../middlewares/payload-validator";
+import { uuidParamSchema, createDepartmentSchema, updateDepartmentSchema } from "../models/payload-schemas";
 
 
 @injectable()
@@ -26,12 +26,12 @@ export class DepartmentController extends ControllerBase {
             {
                 method: 'POST',
                 path: CommonRoutes.getAll,
-                
                 handler: this.getAll as RouteHandlerMethod
             },
             {
                 method: 'GET',
                 path: `${CommonRoutes.getById}/:id`,
+                middlewares: [paramsValidator(uuidParamSchema)],
                 handler: this.getById as RouteHandlerMethod
             },
             {
@@ -42,11 +42,16 @@ export class DepartmentController extends ControllerBase {
             {
                 method: 'PUT',
                 path: `${CommonRoutes.update}/:id`,
+                middlewares: [
+                    paramsValidator(uuidParamSchema),
+                    bodyValidator(updateDepartmentSchema)
+                ],
                 handler: this.update as RouteHandlerMethod
             },
             {
                 method: 'DELETE',
                 path: `${CommonRoutes.delete}/:id`,
+                middlewares: [paramsValidator(uuidParamSchema)],
                 handler: this.delete as RouteHandlerMethod
             }
         ];
