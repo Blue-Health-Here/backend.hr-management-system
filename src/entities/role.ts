@@ -1,4 +1,4 @@
-import { Column, Entity, JoinColumn, JoinTable, ManyToMany, ManyToOne, OneToMany, Unique } from "typeorm";
+import { BeforeInsert, Column, Entity, JoinColumn, JoinTable, ManyToMany, ManyToOne, OneToMany, Unique } from "typeorm";
 import { IRoleRequest, IRoleResponse } from "../models";
 import { ITokenUser } from "../models/inerfaces/tokenUser";
 import { IToResponseBase } from "./abstractions/to-response-base";
@@ -6,6 +6,7 @@ import { Company } from "./company";
 import { EntityBase } from "./base-entities/entity-base";
 import { Privilege } from "./privilege";
 import { User } from "./user";
+import { generateCodeFromName, sanitizeString } from "../utility";
 
 @Entity('Role')
 @Unique(["companyId", "code"])
@@ -23,6 +24,15 @@ export class Role extends EntityBase implements IToResponseBase<Role, IRoleRespo
     @ManyToOne(() => Company, {nullable: true, onDelete: 'CASCADE'})
     @JoinColumn({name: 'companyId', referencedColumnName: 'id'})
     company!: Company | undefined
+
+    @BeforeInsert()
+    beforeInsert() {
+        // Generate code if not provided
+        if (!this.code && this.name) {
+            this.name = sanitizeString(this.name);
+            this.code = generateCodeFromName(this.name);
+        }
+    }
     
     @ManyToMany(() => Privilege, (privilege) => privilege.roles, {cascade: true, eager: true})
     @JoinTable({

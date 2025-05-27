@@ -11,12 +11,4 @@ export class RoleRepository extends GenericRepository<Role, IRoleResponse> {
         super(dataSource.getRepository(Role));
     }
 
-    async findByNameOrCodeInCompany(companyId: string, name: string, code: string): Promise<Role | null> {
-        return this.repository
-            .createQueryBuilder("role")
-            .where("role.companyId = :companyId", { companyId })
-            .andWhere("(role.name = :name OR role.code = :code)", { name, code })
-            .getOne();
-    }
-
 }
