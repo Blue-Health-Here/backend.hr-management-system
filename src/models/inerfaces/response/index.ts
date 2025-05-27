@@ -8,3 +8,4 @@ export * from './audit-log';
 export * from './activity-log';
 export * from './verification';
 export * from './department';
+export * from './designation';

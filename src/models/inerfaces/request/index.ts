@@ -8,3 +8,4 @@ export * from './get-single-filter';
 export * from './audit-log';
 export * from './auth';
 export * from './department';
+export * from './designation';

@@ -6,6 +6,7 @@ import { UserRepository } from "../user-repository";
 import { ToDoRepository } from "../todo-repository";
 import { VerificationRepository } from "../verification-repository";
 import { DepartmentRepository } from "../department-repository";
+import { DesignationRepository } from "../designation-repository";
 
 export const registerRepositories = (container: DependencyContainer) => {
     container.register<CompanyRepository>('CompanyRepository', CompanyRepository);
@@ -15,4 +16,5 @@ export const registerRepositories = (container: DependencyContainer) => {
     container.register<ToDoRepository>('ToDoRepository', ToDoRepository );
     container.register<VerificationRepository>('VerificationRepository', VerificationRepository );
     container.register<DepartmentRepository>('DepartmentRepository', DepartmentRepository);
+    container.register<DesignationRepository>('DesignationRepository', DesignationRepository);
 }
