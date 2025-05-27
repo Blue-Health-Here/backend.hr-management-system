@@ -10,3 +10,10 @@ export function generateCodeFromName(name: string): string {
         })
         .join('');
 }
+
+export function sanitizeString(input: string): string {
+    return input
+        .replace(/[^a-zA-Z0-9\s]/g, '') // Remove special characters
+        .trim()
+        .replace(/\s+/g, ' '); // Replace multiple spaces with a single space
+}

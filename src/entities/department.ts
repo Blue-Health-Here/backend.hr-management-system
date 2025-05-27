@@ -2,7 +2,7 @@ import { Column, Entity, JoinColumn, ManyToOne, OneToMany, Unique, BeforeInsert,
 import { IDepartmentRequest, IDepartmentResponse, ITokenUser, DepartmentStatus } from "../models";
 import { IToResponseBase } from "./abstractions/to-response-base";
 import { CompanyEntityBase } from "./base-entities/company-entity-base";
-import { generateCodeFromName } from "../utility";
+import { generateCodeFromName, sanitizeString } from "../utility";
 
 @Entity('Department')
 @Unique(['companyId', 'code'])
@@ -46,6 +46,7 @@ export class Department extends CompanyEntityBase implements IToResponseBase<Dep
     beforeInsert() {
         // Generate code if not provided
         if (!this.code && this.name) {
+            this.name = sanitizeString(this.name);
             this.code = generateCodeFromName(this.name);
         }
     }

@@ -3,7 +3,7 @@ import { DepartmentRepository } from "../dal";
 import { Department } from "../entities";
 import { IDepartmentRequest, IDepartmentResponse, ITokenUser } from "../models";
 import { Service } from "./generics/service";
-import { generateCodeFromName } from "../utility";
+import { generateCodeFromName, sanitizeString } from "../utility";
 import { AppError } from "../utility/app-error";
 import { Not } from "typeorm";
 @injectable()
@@ -14,7 +14,8 @@ export class DepartmentService extends Service<Department, IDepartmentResponse, 
 
 
     async update(id: string, request: IDepartmentRequest, contextUser: ITokenUser): Promise<IDepartmentResponse> {
-        const { name } = request;
+        let { name } = request;
+        name = sanitizeString(name);
         const camelCasedName = generateCodeFromName(name);
 
         const existing = await this.departmentRepository.firstOrDefault({
