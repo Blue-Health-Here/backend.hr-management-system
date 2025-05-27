@@ -6,6 +6,7 @@ import { RoleController } from '../role-controller';
 import { ToDoController } from '../todo-controller';
 import { AuthController } from '../auth-controller';
 import { DepartmentController } from '../deparment-controller';
+import { DesignationController } from '../designation-controller';
 
 export const registerControllers = (container: DependencyContainer) => {
     container.register<CompanyController>('CompanyController', CompanyController);
@@ -14,6 +15,7 @@ export const registerControllers = (container: DependencyContainer) => {
     container.register<RoleController>('RoleController', RoleController);
     container.register<AuthController>('AuthController', AuthController);
     container.register<DepartmentController>('DepartmentController', DepartmentController);
+    container.register<DesignationController>('DesignationController', DesignationController);
 
     return {
         companyController: container.resolve(CompanyController),
@@ -23,6 +25,7 @@ export const registerControllers = (container: DependencyContainer) => {
         toDoController: container.resolve(ToDoController),
         authController: container.resolve(AuthController),
         departmentController: container.resolve(DepartmentController),
+        designationController: container.resolve(DesignationController),
     }
 
 }
