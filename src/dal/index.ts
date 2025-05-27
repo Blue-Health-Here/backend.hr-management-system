@@ -7,3 +7,4 @@ export * from './activity-log-repository';
 export * from './audit-log-repository';
 export * from './todo-repository';
 export * from './verification-repository';
+export * from './department-repository';

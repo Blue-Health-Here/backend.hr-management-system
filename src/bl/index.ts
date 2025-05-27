@@ -5,3 +5,4 @@ export * from './user-service';
 export * from './role-service';
 export * from './privilege-service';
 export * from './todo-service';
+export * from './department-service';

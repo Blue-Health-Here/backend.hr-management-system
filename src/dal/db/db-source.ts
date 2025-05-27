@@ -1,6 +1,6 @@
 import { DataSource } from "typeorm";
 import { log, error } from "console";
-import { Company, Privilege, Role, User, ToDo, ActivityLog, AuditLog, Verification } from "../../entities";
+import { Company, Privilege, Role, User, ToDo, ActivityLog, AuditLog, Verification, Department } from "../../entities";
 import { config } from "dotenv";
 import pg from 'pg';
 config();
@@ -15,7 +15,7 @@ export const dataSource = new DataSource({
     password: process.env.DB_Password ?? "",
     port: process.env.DB_Port ? parseInt(process.env.DB_Port) : 1433,
     migrations: ["src/dal/migrations/**/*.ts"],
-    entities: [Company, User,  Role, Privilege, ToDo, ActivityLog, Verification],
+    entities: [Company, User,  Role, Privilege, ToDo, ActivityLog, Verification, Department],
     synchronize: true,
     ssl: false
 });

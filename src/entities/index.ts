@@ -8,4 +8,5 @@ export * from './to-do';
 export * from './activity-log';
 export * from './audit-log';
 export * from './verification';
+export * from './department';
  
