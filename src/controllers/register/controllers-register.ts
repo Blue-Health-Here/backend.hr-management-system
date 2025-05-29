@@ -9,6 +9,7 @@ import { DepartmentController } from '../deparment-controller';
 import { DesignationController } from '../designation-controller';
 import { Country } from '../../entities';
 import { CountryController } from '../country-controller';
+import { LeaveTypeController } from '../leave-type-controller';
 
 export const registerControllers = (container: DependencyContainer) => {
     container.register<CompanyController>('CompanyController', CompanyController);
@@ -30,6 +31,7 @@ export const registerControllers = (container: DependencyContainer) => {
         authController: container.resolve(AuthController),
         departmentController: container.resolve(DepartmentController),
         designationController: container.resolve(DesignationController),
+        leaveTypeController: container.resolve(LeaveTypeController)
     }
 
 }

@@ -10,3 +10,4 @@ export * from './todo-repository';
 export * from './verification-repository';
 export * from './department-repository';
 export * from './designation-repository';
+export * from './leave-type-repository';

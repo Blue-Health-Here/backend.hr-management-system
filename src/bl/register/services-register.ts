@@ -7,6 +7,7 @@ import { ToDoService } from "../todo-service";
 import { DepartmentService } from "../department-service";
 import { DesignationService } from "../designation-service";
 import { CountryService } from "../country-service";
+import { LeaveTypeService } from "../leave-type-service";
 
 export const registerServices = (container: DependencyContainer) => {
     container.register<CompanyService>('CompanyService', CompanyService);
@@ -17,4 +18,5 @@ export const registerServices = (container: DependencyContainer) => {
     container.register<ToDoService>('ToDoService', ToDoService);
     container.register<DepartmentService>('DepartmentService', DepartmentService);
     container.register<DesignationService>('DesignationService', DesignationService);
+    container.register<LeaveTypeService>('LeaveTypeService', LeaveTypeService);
 }

@@ -8,3 +8,4 @@ export * from './privilege-service';
 export * from './todo-service';
 export * from './department-service';
 export * from './designation-service';
+export * from './leave-type-service';
