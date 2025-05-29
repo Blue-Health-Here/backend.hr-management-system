@@ -7,3 +7,4 @@ export * from './gender';
 export * from './auth';
 export * from './department.enum';
 export * from './designation.enum';
+export * from './leave-type.enum';

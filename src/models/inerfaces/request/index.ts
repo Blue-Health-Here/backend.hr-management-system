@@ -10,3 +10,4 @@ export * from './audit-log';
 export * from './auth';
 export * from './department';
 export * from './designation';
+export * from './leave-type';
