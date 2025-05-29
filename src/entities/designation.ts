@@ -6,7 +6,8 @@ import { Department } from "./department";
 import { generateCodeFromName, sanitizeString } from "../utility";
 
 @Entity('Designation')
-@Unique(['companyId', 'departmentId', 'code'])
+@Unique(['companyId', 'code']) // Ensure unique code per company
+@Unique(['companyId', 'title']) // Ensure unique title per company
 export class Designation extends CompanyEntityBase implements IToResponseBase<Designation, IDesignationResponse> {
     
     @Column({ type: 'int', nullable: true })

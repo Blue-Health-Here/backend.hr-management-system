@@ -1,5 +1,5 @@
 import { ICompanyResponseBase } from "./response-base";
-import { IUserResponse } from "./user";
+import { IDepartmentDesignationResponse } from "./designation";
 
 export interface IDepartmentResponse extends ICompanyResponseBase {
     name: string;
@@ -10,4 +10,5 @@ export interface IDepartmentResponse extends ICompanyResponseBase {
     sortOrder?: number;
     parent?: IDepartmentResponse;
     children: IDepartmentResponse[];
+    designations?: IDepartmentDesignationResponse[];
 }

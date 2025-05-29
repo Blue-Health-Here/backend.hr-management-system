@@ -53,6 +53,12 @@ export class DepartmentController extends ControllerBase {
                 path: `${CommonRoutes.delete}/:id`,
                 middlewares: [paramsValidator(uuidParamSchema)],
                 handler: this.delete as RouteHandlerMethod
+            },
+            {
+                method: 'GET',
+                path: `${CommonRoutes.getById}/:id/designations`,
+                middlewares: [paramsValidator(uuidParamSchema)],
+                handler: this.getDepartmentWithDesignations as RouteHandlerMethod
             }
         ];
 
@@ -105,6 +111,15 @@ export class DepartmentController extends ControllerBase {
         if (request.user) {
           res.send(await this.departmentService.update(req.params.id, req.body, request.user));
         }  
+    }
+
+    // get department with designations
+    private getDepartmentWithDesignations = async (req: FastifyRequest<{Params: {id: string}}>, res: FastifyReply) => {
+        let request = req as ExtendedRequest;
+
+        if (request.user) {
+            res.send(await this.departmentService.getDepartmentWithDesignations(req.params.id, request.user));
+        }
     }
 
 }

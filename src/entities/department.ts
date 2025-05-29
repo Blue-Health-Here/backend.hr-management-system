@@ -2,6 +2,7 @@ import { Column, Entity, JoinColumn, ManyToOne, OneToMany, Unique, BeforeInsert,
 import { IDepartmentRequest, IDepartmentResponse, ITokenUser, DepartmentStatus } from "../models";
 import { IToResponseBase } from "./abstractions/to-response-base";
 import { CompanyEntityBase } from "./base-entities/company-entity-base";
+import { Designation } from "./designation"; // Import Designation entity
 import { generateCodeFromName, sanitizeString } from "../utility";
 
 @Entity('Department')
@@ -42,6 +43,10 @@ export class Department extends CompanyEntityBase implements IToResponseBase<Dep
     @OneToMany(() => Department, (department) => department.parent)
     children!: Department[];
 
+    // NEW: One-to-Many relationship with Designations
+    @OneToMany(() => Designation, (designation) => designation.department)
+    designations!: Designation[];
+
     @BeforeInsert()
     beforeInsert() {
         // Generate code if not provided
@@ -63,7 +68,8 @@ export class Department extends CompanyEntityBase implements IToResponseBase<Dep
             status: entity.status,
             sortOrder: entity.sortOrder,
             parent: entity.parent ? entity.parent.toResponse(entity.parent) : undefined,
-            children: entity.children ? entity.children.map(child => child.toResponse(child)) : []
+            children: entity.children ? entity.children.map(child => child.toResponse(child)) : [],
+            designations: entity.designations ? entity.designations.map(designation => designation.toResponse(designation)) : []
         }
     }
 

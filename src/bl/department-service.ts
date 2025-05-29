@@ -1,5 +1,5 @@
 import { inject, injectable } from "tsyringe";
-import { DepartmentRepository } from "../dal";
+import { DepartmentRepository, DesignationRepository } from "../dal";
 import { Department } from "../entities";
 import { IDepartmentRequest, IDepartmentResponse, ITokenUser } from "../models";
 import { Service } from "./generics/service";
@@ -8,7 +8,10 @@ import { AppError } from "../utility/app-error";
 import { Not } from "typeorm";
 @injectable()
 export class DepartmentService extends Service<Department, IDepartmentResponse, IDepartmentRequest> {
-    constructor(@inject('DepartmentRepository') private readonly departmentRepository: DepartmentRepository) {
+    constructor(
+        @inject('DepartmentRepository') private readonly departmentRepository: DepartmentRepository,
+        @inject('DesignationRepository') private readonly designationRepository: DesignationRepository
+    ) {
         super(departmentRepository, () => new Department());
     }
 
@@ -33,4 +36,21 @@ export class DepartmentService extends Service<Department, IDepartmentResponse, 
 
         return super.update(id, request, contextUser);
     }
+
+    async getDepartmentWithDesignations(id: string, contextUser?: ITokenUser): Promise<IDepartmentResponse | null> {
+        
+
+        const department = await this.departmentRepository.firstOrDefault({
+            where: { id },
+            relations: ['designations']
+        });
+
+        if (!department) {
+            return null;
+        }
+
+        return department.toResponse();
+
+    }
+
 }

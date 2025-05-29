@@ -13,3 +13,14 @@ export interface IDesignationResponse extends ICompanyResponseBase {
     sortOrder?: number;
     department?: IDepartmentResponse;
 }
+
+export interface IDepartmentDesignationResponse extends ICompanyResponseBase {
+    departmentId?: number;
+    title: string;
+    code?: string;
+    jobDescription?: string;
+    levelHierarchy: LevelHierarchy;
+    responsibilities?: string;
+    status: DesignationStatus;
+    sortOrder?: number;
+}
