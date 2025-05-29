@@ -1,7 +1,7 @@
 import { randomUUID } from "crypto";
 import { Column, Entity } from "typeorm";
 import { EmptyGuid } from "../constants";
-import { ICountryResponse, ITokenUser } from "../models";
+import { ICountryResponse, ICountryRequest, ITokenUser } from "../models";
 import { IToResponseBase } from "./abstractions/to-response-base";
 import { EntityBase } from "./base-entities/entity-base";
 
@@ -29,25 +29,15 @@ export class Country extends EntityBase implements IToResponseBase<Country, ICou
     @Column({ type: 'text', nullable: true })
     phone?: string;
 
-    newInstanceToAdd(name: string, code: string, iso2: string, capital?: string, continent?: string, currency?: string, phone?: string): Country {
-        this.id = randomUUID();
-        this.createdAt = new Date();
-        this.createdBy = "System";
-        this.createdById = EmptyGuid;
-        this.active = true;
-        this.deleted = false;
-        this.name = name;
-        this.code = code;
-        this.iso2 = iso2;
-        this.capital = capital;
-        this.continent = continent;
-        this.currency = currency;
-        this.phone = phone;
+    toEntity(requestEntity: ICountryRequest, id?: string, contextUser?: ITokenUser): Country {
+        this.name = requestEntity.name ?? "";
+        this.code = requestEntity.code ?? "";
+        this.iso2 = requestEntity.iso2 ?? "";
+        this.capital = requestEntity.capital ?? "";
+        this.continent = requestEntity.continent ?? "";
+        this.currency = requestEntity.currency ?? "";
+        this.phone = requestEntity.phone ?? "";
         return this;
-    }
-
-    toEntity(requestEntity: Country, id?: string, contextUser?: ITokenUser): Country {
-        return requestEntity;
     }
 
     toResponse(entity?: Country): ICountryResponse {

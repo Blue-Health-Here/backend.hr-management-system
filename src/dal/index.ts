@@ -1,5 +1,6 @@
 export * from './abstractions';
 export * from './company-repository';
+export * from './country-repository';
 export * from './user-repository';
 export * from './role-repository';
 export * from './privilege-repository';

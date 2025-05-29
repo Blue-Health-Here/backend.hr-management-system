@@ -7,9 +7,11 @@ import { ToDoRepository } from "../todo-repository";
 import { VerificationRepository } from "../verification-repository";
 import { DepartmentRepository } from "../department-repository";
 import { DesignationRepository } from "../designation-repository";
+import { CountryRepository } from "../country-repository";
 
 export const registerRepositories = (container: DependencyContainer) => {
     container.register<CompanyRepository>('CompanyRepository', CompanyRepository);
+    container.register<CountryRepository>('CountryRepository', CountryRepository);
     container.register<UserRepository>('UserRepository', UserRepository);
     container.register<PrivilegeRepository>('PrivilegeRepository', PrivilegeRepository);
     container.register<RoleRepository>('RoleRepository', RoleRepository );

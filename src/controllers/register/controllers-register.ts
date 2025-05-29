@@ -7,9 +7,12 @@ import { ToDoController } from '../todo-controller';
 import { AuthController } from '../auth-controller';
 import { DepartmentController } from '../deparment-controller';
 import { DesignationController } from '../designation-controller';
+import { Country } from '../../entities';
+import { CountryController } from '../country-controller';
 
 export const registerControllers = (container: DependencyContainer) => {
     container.register<CompanyController>('CompanyController', CompanyController);
+    container.register<CountryController>('CountryController', CountryController);
     container.register<PrivilegeController>('PrivilegeController', PrivilegeController);
     container.register<ToDoController>('ToDoController', ToDoController);
     container.register<RoleController>('RoleController', RoleController);
@@ -19,6 +22,7 @@ export const registerControllers = (container: DependencyContainer) => {
 
     return {
         companyController: container.resolve(CompanyController),
+        countryController: container.resolve(CountryController),
         userController: container.resolve(UserController),
         privilegeController: container.resolve(PrivilegeController),
         roleController: container.resolve(RoleController),
