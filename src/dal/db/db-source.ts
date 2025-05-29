@@ -1,10 +1,12 @@
 import { DataSource } from "typeorm";
 import { log, error } from "console";
-import { Company, Privilege, Role, User, ToDo, ActivityLog, AuditLog, Verification, Department, Designation } from "../../entities";
+import { Company, Country, Privilege, Role, User, ToDo, ActivityLog, AuditLog, Verification, Department, Designation } from "../../entities";
 import { config } from "dotenv";
 import pg from 'pg';
 config();
 import { AddDefaultData, superAdminSetup } from "../../utility/default-data";
+import { CountryDataSeeder } from "../seeders/country-data-seeder";
+
 
 export const dataSource = new DataSource({
     driver: pg,
@@ -15,7 +17,7 @@ export const dataSource = new DataSource({
     password: process.env.DB_Password ?? "",
     port: process.env.DB_Port ? parseInt(process.env.DB_Port) : 1433,
     migrations: ["src/dal/migrations/**/*.ts"],
-    entities: [Company, User,  Role, Privilege, ToDo, ActivityLog, Verification, Department, Designation],
+    entities: [Company, Country, User, Role, Privilege, ToDo, ActivityLog, AuditLog, Verification, Department, Designation],
     synchronize: true,
     ssl: false
 });
@@ -25,6 +27,11 @@ dataSource.initialize()
 .then(async (x) => {
     // await AddDefaultData(dataSource)
     // await superAdminSetup(dataSource);
+
+
+    // console.log("Running country seeder...");
+    // await CountryDataSeeder.seed(dataSource);
+
     log("Database Connected successfully!");
 })
 .catch((err) =>  error("Error connecting to database", err));
