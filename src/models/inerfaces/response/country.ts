@@ -11,3 +11,11 @@ export interface ICountryResponse extends IResponseBase {
     currency?: string;
     phone?: string;
 }
+
+
+// only get id name and code
+export interface ICountryMinimalResponse {
+    id: string;
+    name: string;
+    code: string;
+}
