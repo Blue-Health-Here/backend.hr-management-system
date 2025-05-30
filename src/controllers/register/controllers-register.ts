@@ -10,6 +10,7 @@ import { DesignationController } from '../designation-controller';
 import { Country } from '../../entities';
 import { CountryController } from '../country-controller';
 import { LeaveTypeController } from '../leave-type-controller';
+import { PublicHolidayController } from '../public-holiday-controller';
 
 export const registerControllers = (container: DependencyContainer) => {
     container.register<CompanyController>('CompanyController', CompanyController);
@@ -20,6 +21,8 @@ export const registerControllers = (container: DependencyContainer) => {
     container.register<AuthController>('AuthController', AuthController);
     container.register<DepartmentController>('DepartmentController', DepartmentController);
     container.register<DesignationController>('DesignationController', DesignationController);
+    container.register<LeaveTypeController>('LeaveTypeController', LeaveTypeController);
+    container.register<PublicHolidayController>('PublicHolidayController', PublicHolidayController);
 
     return {
         companyController: container.resolve(CompanyController),
@@ -31,7 +34,8 @@ export const registerControllers = (container: DependencyContainer) => {
         authController: container.resolve(AuthController),
         departmentController: container.resolve(DepartmentController),
         designationController: container.resolve(DesignationController),
-        leaveTypeController: container.resolve(LeaveTypeController)
+        leaveTypeController: container.resolve(LeaveTypeController),
+        publicHolidayController: container.resolve(PublicHolidayController)
     }
 
 }
