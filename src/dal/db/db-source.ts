@@ -1,6 +1,6 @@
 import { DataSource } from "typeorm";
 import { log, error } from "console";
-import { Company, Country, Privilege, Role, PublicHoliday, User, ToDo, ActivityLog, AuditLog, Verification, Department, Designation, LeaveType } from "../../entities";
+import { Company, Country, Privilege, Role, PublicHoliday, User, ToDo, ActivityLog, AuditLog, Verification, Department, Designation, LeaveType, Employee } from "../../entities";
 import { config } from "dotenv";
 import pg from 'pg';
 config();
@@ -17,7 +17,7 @@ export const dataSource = new DataSource({
     password: process.env.DB_Password ?? "",
     port: process.env.DB_Port ? parseInt(process.env.DB_Port) : 1433,
     migrations: ["src/dal/migrations/**/*.ts"],
-    entities: [Company, Country, User, Role,  Privilege, ToDo, ActivityLog, AuditLog, Verification, Department, Designation, LeaveType, PublicHoliday],
+    entities: [Company, Country, User, Role,  Privilege, ToDo, ActivityLog, AuditLog, Verification, Department, Designation, LeaveType, PublicHoliday, Employee],
     synchronize: true,
     ssl: false
 });
@@ -27,7 +27,6 @@ dataSource.initialize()
 .then(async (x) => {
     // await AddDefaultData(dataSource)
     // await superAdminSetup(dataSource);
-
 
     // console.log("Running country seeder...");
     // await CountryDataSeeder.seed(dataSource);
