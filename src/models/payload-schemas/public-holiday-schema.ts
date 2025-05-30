@@ -20,11 +20,9 @@ export const createPublicHolidaySchema = z.object({
     description: z.string()
         .trim()
         .optional(),
-    whichCountryId: z.number()
-        .int()
-        .positive("Country ID must be a positive integer")
+    whichCountryId: z.string().uuid()
         .optional(),
-    departmentIds: z.array(z.number().int().positive())
+    departmentIds: z.array(z.string().uuid())
         .optional()
         .default([]),
     status: z.nativeEnum(PublicHolidayStatus)

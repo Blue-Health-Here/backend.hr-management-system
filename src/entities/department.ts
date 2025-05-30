@@ -1,9 +1,10 @@
-import { Column, Entity, JoinColumn, ManyToOne, OneToMany, Unique, BeforeInsert, BeforeUpdate } from "typeorm";
+import { Column, Entity, JoinColumn, ManyToOne, OneToMany, Unique, BeforeInsert, BeforeUpdate, ManyToMany } from "typeorm";
 import { IDepartmentRequest, IDepartmentResponse, ITokenUser, DepartmentStatus } from "../models";
 import { IToResponseBase } from "./abstractions/to-response-base";
 import { CompanyEntityBase } from "./base-entities/company-entity-base";
 import { Designation } from "./designation"; // Import Designation entity
 import { generateCodeFromName, sanitizeString } from "../utility";
+import { PublicHoliday } from "./public-holiday";
 
 @Entity('Department')
 @Unique(['companyId', 'code'])
@@ -46,6 +47,9 @@ export class Department extends CompanyEntityBase implements IToResponseBase<Dep
     // NEW: One-to-Many relationship with Designations
     @OneToMany(() => Designation, (designation) => designation.department)
     designations!: Designation[];
+
+    @ManyToMany(() => PublicHoliday, publicHoliday => publicHoliday.departments)
+    publicHolidays?: PublicHoliday[];
 
     @BeforeInsert()
     beforeInsert() {

@@ -2,6 +2,7 @@ import { Column, Entity, JoinColumn, ManyToOne, ManyToMany, JoinTable, Unique, I
 import { IPublicHolidayRequest, IPublicHolidayResponse, ITokenUser, PublicHolidayStatus } from "../models";
 import { IToResponseBase } from "./abstractions/to-response-base";
 import { CompanyEntityBase } from "./base-entities/company-entity-base";
+import { Department } from "./department";
 import { Country } from "./country"; // Assuming you have a Country entity
 
 @Entity('PublicHoliday')
@@ -40,6 +41,23 @@ export class PublicHoliday extends CompanyEntityBase implements IToResponseBase<
     @JoinColumn({ name: 'whichCountryId', referencedColumnName: 'id' })
     country?: Country;
 
+    // Many-to-Many relationship with Departments
+    @ManyToMany(() => Department, department => department.publicHolidays, {
+        cascade: ['insert', 'update'],
+        eager: false
+    })
+    @JoinTable({
+        name: 'PublicHolidayDepartment',
+        joinColumn: {
+            name: 'publicHolidayId',
+            referencedColumnName: 'id'
+        },
+        inverseJoinColumn: {
+            name: 'departmentId',
+            referencedColumnName: 'id'
+        }
+    })
+    departments?: Department[];
     
     toResponse(entity?: PublicHoliday): IPublicHolidayResponse {
         if(!entity) entity = this;
@@ -55,8 +73,9 @@ export class PublicHoliday extends CompanyEntityBase implements IToResponseBase<
             country: entity.country ? {
                 id: entity.country.id,
                 name: entity.country.name,
-                code: entity.country.code,
+                code: entity.country.code
             } : undefined,
+            departments: entity.departments ? entity.departments.map(dept => (dept.toResponse())) : []
         }
     }
 
@@ -76,6 +95,15 @@ export class PublicHoliday extends CompanyEntityBase implements IToResponseBase<
             let country = new Country();
             country.id = entityRequest.whichCountryId.toString();
             this.country = country;
+        }
+
+        // Set departments if departmentIds are provided
+        if (entityRequest.departmentIds && entityRequest.departmentIds.length > 0) {
+            this.departments = entityRequest.departmentIds.map(deptId => {
+                let department = new Department();
+                department.id = deptId.toString();
+                return department;
+            });
         }
 
         if(contextUser) super.toCompanyEntity(contextUser, id);

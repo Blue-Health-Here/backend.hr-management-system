@@ -12,5 +12,5 @@ export interface IPublicHolidayResponse extends ICompanyResponseBase {
     whichCountryId?: number; // Optional, ID of the country this holiday belongs to
     status?: PublicHolidayStatus; // Default is ACTIVE
     country?: ICountryMinimalResponse; // Minimal country response
-    department?: IDepartmentResponse;
+    departments?: IDepartmentResponse[];
 }

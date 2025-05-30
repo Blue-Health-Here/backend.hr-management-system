@@ -52,6 +52,12 @@ export class PublicHolidayController extends ControllerBase {
                 path: `${CommonRoutes.delete}/:id`,
                 middlewares: [paramsValidator(uuidParamSchema)],
                 handler: this.delete as RouteHandlerMethod
+            },
+            {
+                method: 'GET',
+                path: `${CommonRoutes.getById}/:id/departments`,
+                middlewares: [paramsValidator(uuidParamSchema)],
+                handler: this.getPublicHolidayWithDepartments as RouteHandlerMethod
             }
         ];
 
@@ -104,6 +110,14 @@ export class PublicHolidayController extends ControllerBase {
         if (request.user) {
           res.send(await this.publicHolidayService.update(req.params.id, req.body, request.user));
         }  
+    }
+
+    private getPublicHolidayWithDepartments = async (req: FastifyRequest<{Params: {id: string}}>, res: FastifyReply) => {
+        let request = req as ExtendedRequest;
+
+        if (request.user) {
+            res.send(await this.publicHolidayService.getPublicHolidayWithDepartments(req.params.id, request.user));
+        }
     }
 
 }
