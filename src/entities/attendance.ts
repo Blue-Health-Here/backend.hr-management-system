@@ -3,8 +3,7 @@ import { CompanyEntityBase } from "./base-entities/company-entity-base";
 import { IToResponseBase } from "./abstractions/to-response-base";
 import { Employee } from "./employee";
 import { ITokenUser } from "../models/inerfaces/tokenUser";
-import { AttendanceBreak } from "./attendance-break";
-import { PublicHoliday } from "./public-holiday";
+import { AttendanceBreak, IBreakResponse } from "./attendance-break";
 
 // Attendance Status Enum
 export enum AttendanceStatus {
@@ -17,6 +16,11 @@ export enum AttendanceStatus {
     DayOff = 'Day Off',
 }
 
+// Polymorphic Type Enum for Vacationable
+export enum VacationableType {
+    LeaveApplication = 'LeaveApplication',
+    PublicHoliday = 'PublicHoliday'
+}
 
 // ========================= ATTENDANCE ENTITY =========================
 export interface IAttendanceRequest {
@@ -30,8 +34,9 @@ export interface IAttendanceRequest {
     notes?: string;
     location?: string;
     isRemote?: boolean;
-    leaveApplicationId?: string;  // Reference to approved leave application
-    publicHolidayId?: string;     // Reference to company public holiday
+    // Polymorphic fields for leave/holiday reference
+    vacationableId?: string;      // ID of LeaveApplication or PublicHoliday
+    vacationableType?: VacationableType;  // Type to identify which entity
 }
 
 export interface IAttendanceResponse {
@@ -46,12 +51,13 @@ export interface IAttendanceResponse {
     notes?: string;
     location?: string;
     isRemote: boolean;
-    leaveApplicationId?: string;
-    publicHolidayId?: string;
+    // Polymorphic fields
+    vacationableId?: string;
+    vacationableType?: VacationableType;
     employee?: any;
-    leaveApplication?: any;      // Reference to leave application entity
-    publicHoliday?: any;         // Reference to public holiday entity
-    breaks?: any[];              // Array of break records
+    // Dynamic vacationable object based on type
+    vacationable?: any;  // Will be LeaveApplication or PublicHoliday based on type
+    breaks?: IBreakResponse[];
 }
 
 @Entity('Attendance')
@@ -83,8 +89,14 @@ export class Attendance extends CompanyEntityBase implements IToResponseBase<Att
     @Column({ type: 'decimal', precision: 5, scale: 2, nullable: true })
     totalBreakTime?: number;
 
+    @Column({ type: 'decimal', precision: 5, scale: 2, nullable: true })
+    overtimeHours?: number;
+
     @Column({ type: 'int', default: 0 })
     lateMinutes!: number;
+
+    @Column({ type: 'int', default: 0 })
+    earlyLeaveMinutes!: number;
 
     @Column({ type: 'text', nullable: true })
     notes?: string;
@@ -95,11 +107,12 @@ export class Attendance extends CompanyEntityBase implements IToResponseBase<Att
     @Column({ type: 'boolean', default: false })
     isRemote!: boolean;
 
+    // Polymorphic relationship fields
     @Column({ type: 'uuid', nullable: true })
-    leaveApplicationId?: string;
+    vacationableId?: string;
 
-    @Column({ type: 'uuid', nullable: true })
-    publicHolidayId?: string;
+    @Column({ type: 'text', nullable: true })
+    vacationableType?: VacationableType;
 
     // Relations
     @ManyToOne(() => Employee, { nullable: false, eager: false })
@@ -109,14 +122,28 @@ export class Attendance extends CompanyEntityBase implements IToResponseBase<Att
     @OneToMany(() => AttendanceBreak, (breakRecord) => breakRecord.attendance, { cascade: true })
     breaks!: AttendanceBreak[];
 
-    // // Optional relations - will be defined when you create LeaveApplication and PublicHoliday entities
-    // @ManyToOne(() => LeaveApplication, { nullable: true, eager: false })
-    // @JoinColumn({ name: 'leaveApplicationId', referencedColumnName: 'id' })
-    // leaveApplication?: LeaveApplication;
+    // Polymorphic relations - These will be commented entities for now
+    @ManyToOne('LeaveApplication', { nullable: true, eager: false })
+    @JoinColumn({ name: 'vacationableId', referencedColumnName: 'id' })
+    leaveApplication?: any;
 
-    // @ManyToOne(() => PublicHoliday, { nullable: true, eager: false })
-    @JoinColumn({ name: 'publicHolidayId', referencedColumnName: 'id' })
-    publicHoliday?: PublicHoliday;
+    @ManyToOne('PublicHoliday', { nullable: true, eager: false })
+    @JoinColumn({ name: 'vacationableId', referencedColumnName: 'id' })
+    publicHoliday?: any;
+
+    // Virtual property to get vacationable based on type
+    get vacationable(): any {
+        if (!this.vacationableType || !this.vacationableId) return null;
+        
+        switch (this.vacationableType) {
+            case VacationableType.LeaveApplication:
+                return (this as any).leaveApplication;
+            case VacationableType.PublicHoliday:
+                return (this as any).publicHoliday;
+            default:
+                return null;
+        }
+    }
 
     toResponse(entity?: Attendance): IAttendanceResponse {
         if (!entity) entity = this;
@@ -134,11 +161,10 @@ export class Attendance extends CompanyEntityBase implements IToResponseBase<Att
             notes: entity.notes,
             location: entity.location,
             isRemote: entity.isRemote,
-            leaveApplicationId: entity.leaveApplicationId,
-            publicHolidayId: entity.publicHolidayId,
+            vacationableId: entity.vacationableId,
+            vacationableType: entity.vacationableType,
             employee: entity.employee ? entity.employee.toResponse() : undefined,
-            // leaveApplication: entity.leaveApplication ? entity.leaveApplication.toResponse() : undefined,
-            publicHoliday: entity.publicHoliday ? entity.publicHoliday.toResponse() : undefined,
+            vacationable: entity.vacationable ? entity.vacationable.toResponse?.() || entity.vacationable : undefined,
             breaks: entity.breaks ? entity.breaks.map(b => b.toResponse()) : undefined
         };
     }
@@ -154,9 +180,9 @@ export class Attendance extends CompanyEntityBase implements IToResponseBase<Att
         this.notes = requestEntity.notes;
         this.location = requestEntity.location;
         this.isRemote = requestEntity.isRemote || false;
-        this.leaveApplicationId = requestEntity.leaveApplicationId;
-        this.publicHolidayId = requestEntity.publicHolidayId;
-        this.totalBreakTime = this.calculateTotalBreakTime(); // Auto calculate total break time        
+        this.vacationableId = requestEntity.vacationableId;
+        this.vacationableType = requestEntity.vacationableType;
+        
         if (contextUser) super.toCompanyEntity(contextUser, id);
         
         return this;
@@ -201,21 +227,46 @@ export class Attendance extends CompanyEntityBase implements IToResponseBase<Att
 
     // Check if attendance is based on approved leave
     isOnApprovedLeave(): boolean {
-        return this.status === AttendanceStatus.OnLeave && !!this.leaveApplicationId;
+        return this.status === AttendanceStatus.OnLeave && 
+               this.vacationableType === VacationableType.LeaveApplication && 
+               !!this.vacationableId;
     }
 
     // Check if attendance is due to public holiday
     isPublicHoliday(): boolean {
-        return this.status === AttendanceStatus.Holiday && !!this.publicHolidayId;
+        return this.status === AttendanceStatus.Holiday && 
+               this.vacationableType === VacationableType.PublicHoliday && 
+               !!this.vacationableId;
     }
 
     // Get attendance type for reporting
-    getAttendanceType(): 'working' | 'leave' | 'holiday' | 'dayOff' | 'absent' {
+    getAttendanceType(): 'working' | 'leave' | 'holiday' | 'dayoff' | 'absent' {
         if (this.isPublicHoliday()) return 'holiday';
         if (this.isOnApprovedLeave()) return 'leave';
-        if (this.status === AttendanceStatus.DayOff) return 'dayOff';
+        if (this.status === AttendanceStatus.DayOff) return 'dayoff';
         if (this.status === AttendanceStatus.Present || this.status === AttendanceStatus.Late || this.status === AttendanceStatus.HalfDay) return 'working';
         return 'absent';
+    }
+
+    // Helper method to get vacationable entity info
+    getVacationableInfo(): { id: string; type: VacationableType } | null {
+        if (!this.vacationableId || !this.vacationableType) return null;
+        return {
+            id: this.vacationableId,
+            type: this.vacationableType
+        };
+    }
+
+    // Set vacationable reference
+    setVacationable(id: string, type: VacationableType): void {
+        this.vacationableId = id;
+        this.vacationableType = type;
+    }
+
+    // Clear vacationable reference
+    clearVacationable(): void {
+        this.vacationableId = undefined;
+        this.vacationableType = undefined;
     }
 
     // Check if it's a full working day
@@ -231,4 +282,3 @@ export class Attendance extends CompanyEntityBase implements IToResponseBase<Att
         this.workingHours = this.calculateWorkingHours();
     }
 }
-
