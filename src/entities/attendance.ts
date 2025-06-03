@@ -3,62 +3,9 @@ import { CompanyEntityBase } from "./base-entities/company-entity-base";
 import { IToResponseBase } from "./abstractions/to-response-base";
 import { Employee } from "./employee";
 import { ITokenUser } from "../models/inerfaces/tokenUser";
-import { AttendanceBreak, IBreakResponse } from "./attendance-break";
+import { AttendanceBreak } from "./attendance-break";
+import { AttendanceStatus, IAttendanceRequest, IAttendanceResponse, VacationableType } from "../models";
 
-// Attendance Status Enum
-export enum AttendanceStatus {
-    Present = 'Present',
-    Absent = 'Absent',
-    Late = 'Late',
-    HalfDay = 'Half Day',
-    OnLeave = 'On Leave',
-    Holiday = 'Holiday',
-    DayOff = 'Day Off',
-}
-
-// Polymorphic Type Enum for Vacationable
-export enum VacationableType {
-    LeaveApplication = 'LeaveApplication',
-    PublicHoliday = 'PublicHoliday'
-}
-
-// ========================= ATTENDANCE ENTITY =========================
-export interface IAttendanceRequest {
-    employeeId: string;
-    date: Date;
-    checkInTime?: Date;
-    checkOutTime?: Date;
-    status: AttendanceStatus;
-    workingHours?: number;
-    lateMinutes?: number;
-    notes?: string;
-    location?: string;
-    isRemote?: boolean;
-    // Polymorphic fields for leave/holiday reference
-    vacationableId?: string;      // ID of LeaveApplication or PublicHoliday
-    vacationableType?: VacationableType;  // Type to identify which entity
-}
-
-export interface IAttendanceResponse {
-    employeeId: string;
-    date: Date;
-    checkInTime?: Date;
-    checkOutTime?: Date;
-    status: AttendanceStatus;
-    workingHours?: number;
-    totalBreakTime?: number;
-    lateMinutes?: number;
-    notes?: string;
-    location?: string;
-    isRemote: boolean;
-    // Polymorphic fields
-    vacationableId?: string;
-    vacationableType?: VacationableType;
-    employee?: any;
-    // Dynamic vacationable object based on type
-    vacationable?: any;  // Will be LeaveApplication or PublicHoliday based on type
-    breaks?: IBreakResponse[];
-}
 
 @Entity('Attendance')
 @Index(['employeeId', 'date'], { unique: true })
@@ -122,10 +69,10 @@ export class Attendance extends CompanyEntityBase implements IToResponseBase<Att
     @OneToMany(() => AttendanceBreak, (breakRecord) => breakRecord.attendance, { cascade: true })
     breaks!: AttendanceBreak[];
 
-    // Polymorphic relations - These will be commented entities for now
-    @ManyToOne('LeaveApplication', { nullable: true, eager: false })
-    @JoinColumn({ name: 'vacationableId', referencedColumnName: 'id' })
-    leaveApplication?: any;
+    // // Polymorphic relations - These will be commented entities for now
+    // @ManyToOne('LeaveApplication', { nullable: true, eager: false })
+    // @JoinColumn({ name: 'vacationableId', referencedColumnName: 'id' })
+    // leaveApplication?: any;
 
     @ManyToOne('PublicHoliday', { nullable: true, eager: false })
     @JoinColumn({ name: 'vacationableId', referencedColumnName: 'id' })

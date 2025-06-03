@@ -47,7 +47,7 @@ export class PublicHoliday extends CompanyEntityBase implements IToResponseBase<
         eager: false
     })
     @JoinTable({
-        name: 'PublicHolidayDepartment',
+        name: 'PublicHoliday_Department',
         joinColumn: {
             name: 'publicHolidayId',
             referencedColumnName: 'id'

@@ -3,45 +3,11 @@ import { CompanyEntityBase } from "./base-entities/company-entity-base";
 import { IToResponseBase } from "./abstractions/to-response-base";
 import { Employee } from "./employee";
 import { ITokenUser } from "../models/inerfaces/tokenUser";
-import { Attendance, IAttendanceResponse } from './attendance';
+import { Attendance } from './attendance';
+import { BreakType, IBreakRequest, IBreakResponse } from "../models";
 
 
-// Break Type Enum
-export enum BreakType {
-    Lunch = 'Lunch Break',
-    Tea = 'Tea Break',
-    Meeting = 'Meeting Break',
-    Prayer = 'Prayer Break',
-    Personal = 'Personal Break',
-    Smoking = 'Smoking Break',
-    Other = 'Other'
-}
 
-
-// ========================= BREAK ENTITY =========================
-export interface IBreakRequest {
-    attendanceId: string;
-    employeeId: string;
-    breakType: BreakType;
-    startTime: Date;
-    endTime?: Date;
-    notes?: string;
-    location?: string;
-}
-
-export interface IBreakResponse {
-    attendanceId: string;
-    employeeId: string;
-    breakType: BreakType;
-    startTime: Date;
-    endTime?: Date;
-    durationMinutes?: number;
-    notes?: string;
-    location?: string;
-    isActive: boolean;
-    attendance?: IAttendanceResponse;
-    employee?: any;
-}
 
 @Entity('Break')
 @Index(['employeeId', 'startTime'])

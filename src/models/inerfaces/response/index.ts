@@ -13,3 +13,4 @@ export * from './designation';
 export * from './leave-type';
 export * from './public-holiday';
 export * from './employee';
+export * from './attendance';
