@@ -1,4 +1,4 @@
-import { AttendanceStatus, BreakType, VacationableType } from "../../enums";
+import { AbsenceReasonType, AttendanceStatus, BreakType,  } from "../../enums";
 
 
 export interface IAttendanceRequest {
@@ -13,8 +13,8 @@ export interface IAttendanceRequest {
     location?: string;
     isRemote?: boolean;
     // Polymorphic fields for leave/holiday reference
-    vacationableId?: string;      // ID of LeaveApplication or PublicHoliday
-    vacationableType?: VacationableType;  // Type to identify which entity
+    absenceReasonId?: string;      // ID of Vacation or PublicHoliday
+    absenceReasonType?: AbsenceReasonType;  // Type to identify which entity
 }
 
 

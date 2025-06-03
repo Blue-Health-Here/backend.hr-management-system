@@ -4,7 +4,7 @@ import { IToResponseBase } from "./abstractions/to-response-base";
 import { Employee } from "./employee";
 import { ITokenUser } from "../models/inerfaces/tokenUser";
 import { AttendanceBreak } from "./attendance-break";
-import { AttendanceStatus, IAttendanceRequest, IAttendanceResponse, VacationableType } from "../models";
+import { AttendanceStatus, IAttendanceRequest, IAttendanceResponse, AbsenceReasonType } from "../models";
 
 
 @Entity('Attendance')
@@ -53,13 +53,13 @@ export class Attendance extends CompanyEntityBase implements IToResponseBase<Att
 
     @Column({ type: 'boolean', default: false })
     isRemote!: boolean;
-
+    
     // Polymorphic relationship fields
     @Column({ type: 'uuid', nullable: true })
-    vacationableId?: string;
+    absenceReasonId?: string;
 
     @Column({ type: 'text', nullable: true })
-    vacationableType?: VacationableType;
+    absenceReasonType?: AbsenceReasonType;
 
     // Relations
     @ManyToOne(() => Employee, { nullable: false, eager: false })
@@ -70,22 +70,22 @@ export class Attendance extends CompanyEntityBase implements IToResponseBase<Att
     breaks!: AttendanceBreak[];
 
     // // Polymorphic relations - These will be commented entities for now
-    // @ManyToOne('LeaveApplication', { nullable: true, eager: false })
+    // @ManyToOne('Vacation', { nullable: true, eager: false })
     // @JoinColumn({ name: 'vacationableId', referencedColumnName: 'id' })
-    // leaveApplication?: any;
+    // vacation?: any;
 
     @ManyToOne('PublicHoliday', { nullable: true, eager: false })
     @JoinColumn({ name: 'vacationableId', referencedColumnName: 'id' })
     publicHoliday?: any;
 
-    // Virtual property to get vacationable based on type
-    get vacationable(): any {
-        if (!this.vacationableType || !this.vacationableId) return null;
-        
-        switch (this.vacationableType) {
-            case VacationableType.LeaveApplication:
-                return (this as any).leaveApplication;
-            case VacationableType.PublicHoliday:
+    // Virtual property to get absenceReason based on type
+    get absenceReason(): any {
+        if (!this.absenceReasonType || !this.absenceReasonId) return null;
+
+        switch (this.absenceReasonType) {
+            case AbsenceReasonType.Vacation:
+                return (this as any).vacation;
+            case AbsenceReasonType.PublicHoliday:
                 return (this as any).publicHoliday;
             default:
                 return null;
@@ -108,10 +108,10 @@ export class Attendance extends CompanyEntityBase implements IToResponseBase<Att
             notes: entity.notes,
             location: entity.location,
             isRemote: entity.isRemote,
-            vacationableId: entity.vacationableId,
-            vacationableType: entity.vacationableType,
+            absenceReasonId: entity.absenceReasonId,
+            absenceReasonType: entity.absenceReasonType,
             employee: entity.employee ? entity.employee.toResponse() : undefined,
-            vacationable: entity.vacationable ? entity.vacationable.toResponse?.() || entity.vacationable : undefined,
+            absenceReason: entity.absenceReason ? entity.absenceReason.toResponse?.() || entity.absenceReason : undefined,
             breaks: entity.breaks ? entity.breaks.map(b => b.toResponse()) : undefined
         };
     }
@@ -127,8 +127,8 @@ export class Attendance extends CompanyEntityBase implements IToResponseBase<Att
         this.notes = requestEntity.notes;
         this.location = requestEntity.location;
         this.isRemote = requestEntity.isRemote || false;
-        this.vacationableId = requestEntity.vacationableId;
-        this.vacationableType = requestEntity.vacationableType;
+        this.absenceReasonId = requestEntity.absenceReasonId;
+        this.absenceReasonType = requestEntity.absenceReasonType;
         
         if (contextUser) super.toCompanyEntity(contextUser, id);
         
@@ -175,15 +175,15 @@ export class Attendance extends CompanyEntityBase implements IToResponseBase<Att
     // Check if attendance is based on approved leave
     isOnApprovedLeave(): boolean {
         return this.status === AttendanceStatus.OnLeave && 
-               this.vacationableType === VacationableType.LeaveApplication && 
-               !!this.vacationableId;
+               this.absenceReasonType === AbsenceReasonType.Vacation && 
+               !!this.absenceReasonId;
     }
 
     // Check if attendance is due to public holiday
     isPublicHoliday(): boolean {
         return this.status === AttendanceStatus.Holiday && 
-               this.vacationableType === VacationableType.PublicHoliday && 
-               !!this.vacationableId;
+               this.absenceReasonType === AbsenceReasonType.PublicHoliday && 
+               !!this.absenceReasonId;
     }
 
     // Get attendance type for reporting
@@ -195,25 +195,25 @@ export class Attendance extends CompanyEntityBase implements IToResponseBase<Att
         return 'absent';
     }
 
-    // Helper method to get vacationable entity info
-    getVacationableInfo(): { id: string; type: VacationableType } | null {
-        if (!this.vacationableId || !this.vacationableType) return null;
+    // Helper method to get absenceReason entity info
+    getAbsenceReasonInfo(): { id: string; type: AbsenceReasonType } | null {
+        if (!this.absenceReasonId || !this.absenceReasonType) return null;
         return {
-            id: this.vacationableId,
-            type: this.vacationableType
+            id: this.absenceReasonId,
+            type: this.absenceReasonType
         };
     }
 
-    // Set vacationable reference
-    setVacationable(id: string, type: VacationableType): void {
-        this.vacationableId = id;
-        this.vacationableType = type;
+    // Set absenceReason reference
+    setAbsenceReason(id: string, type: AbsenceReasonType): void {
+        this.absenceReasonId = id;
+        this.absenceReasonType = type;
     }
 
-    // Clear vacationable reference
-    clearVacationable(): void {
-        this.vacationableId = undefined;
-        this.vacationableType = undefined;
+    // Clear absenceReason reference
+    clearAbsenceReason(): void {
+        this.absenceReasonId = undefined;
+        this.absenceReasonType = undefined;
     }
 
     // Check if it's a full working day

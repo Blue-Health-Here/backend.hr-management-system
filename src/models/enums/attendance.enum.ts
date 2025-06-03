@@ -9,9 +9,9 @@ export enum AttendanceStatus {
     DayOff = 'Day Off',
 }
 
-// Polymorphic Type Enum for Vacationable
-export enum VacationableType {
-    LeaveApplication = 'LeaveApplication',
+// Polymorphic Type Enum for Absence Reason
+export enum AbsenceReasonType {
+    Vacation = 'Vacation',
     PublicHoliday = 'PublicHoliday'
 }
 

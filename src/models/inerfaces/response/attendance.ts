@@ -1,5 +1,6 @@
-import { AttendanceStatus, BreakType, EmployeeStatus, VacationableType } from "../../enums";
+import { AttendanceStatus, BreakType, EmployeeStatus } from "../../enums";
 import { ICompanyResponseBase } from "./response-base";
+import { AbsenceReasonType } from '../../enums/attendance.enum';
 
 
 export interface IAttendanceResponse extends ICompanyResponseBase {
@@ -15,11 +16,11 @@ export interface IAttendanceResponse extends ICompanyResponseBase {
     location?: string;
     isRemote: boolean;
     // Polymorphic fields
-    vacationableId?: string;
-    vacationableType?: VacationableType;
+    absenceReasonId?: string;
+    absenceReasonType?: AbsenceReasonType;
     employee?: any;
-    // Dynamic vacationable object based on type
-    vacationable?: any;  // Will be LeaveApplication or PublicHoliday based on type
+    // Dynamic absenceReason object based on type
+    absenceReason?: any;  // Will be Vacation or PublicHoliday based on type
     breaks?: IBreakResponse[];
 }
 

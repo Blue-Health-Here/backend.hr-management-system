@@ -8,7 +8,6 @@ import { BreakType, IBreakRequest, IBreakResponse } from "../models";
 
 
 
-
 @Entity('Break')
 @Index(['employeeId', 'startTime'])
 export class AttendanceBreak extends CompanyEntityBase implements IToResponseBase<AttendanceBreak, IBreakResponse> {
