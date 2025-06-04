@@ -4,8 +4,9 @@ import { IToResponseBase } from "./abstractions/to-response-base";
 import { Employee } from "./employee";
 import { ITokenUser } from "../models/inerfaces/tokenUser";
 import { AttendanceBreak } from "./attendance-break";
-import { AttendanceStatus, IAttendanceRequest, IAttendanceResponse, AbsenceReasonType } from "../models";
-
+import { AttendanceStatus, IAttendanceRequest, IAttendanceResponse } from "../models";
+import { Vacation } from "./vacation"; // Make sure this import exists
+import { PublicHoliday } from "./public-holiday"; // Make sure this import exists
 
 @Entity('Attendance')
 @Index(['employeeId', 'date'], { unique: true })
@@ -36,9 +37,6 @@ export class Attendance extends CompanyEntityBase implements IToResponseBase<Att
     @Column({ type: 'decimal', precision: 5, scale: 2, nullable: true })
     totalBreakTime?: number;
 
-    @Column({ type: 'decimal', precision: 5, scale: 2, nullable: true })
-    overtimeHours?: number;
-
     @Column({ type: 'int', default: 0 })
     lateMinutes!: number;
 
@@ -53,13 +51,21 @@ export class Attendance extends CompanyEntityBase implements IToResponseBase<Att
 
     @Column({ type: 'boolean', default: false })
     isRemote!: boolean;
-    
-    // Polymorphic relationship fields
-    @Column({ type: 'uuid', nullable: true })
-    absenceReasonId?: string;
 
-    @Column({ type: 'text', nullable: true })
-    absenceReasonType?: AbsenceReasonType;
+    // Add explicit vacation and public holiday fields
+    @Column({ type: 'uuid', nullable: true })
+    vacationId?: string;
+
+    @ManyToOne(() => Vacation, { nullable: true, eager: false })
+    @JoinColumn({ name: 'vacationId', referencedColumnName: 'id' })
+    vacation?: Vacation;
+
+    @Column({ type: 'uuid', nullable: true })
+    publicHolidayId?: string;
+
+    @ManyToOne(() => PublicHoliday, { nullable: true, eager: false })
+    @JoinColumn({ name: 'publicHolidayId', referencedColumnName: 'id' })
+    publicHoliday?: PublicHoliday;
 
     // Relations
     @ManyToOne(() => Employee, { nullable: false, eager: false })
@@ -69,27 +75,11 @@ export class Attendance extends CompanyEntityBase implements IToResponseBase<Att
     @OneToMany(() => AttendanceBreak, (breakRecord) => breakRecord.attendance, { cascade: true })
     breaks!: AttendanceBreak[];
 
-    // // Polymorphic relations - These will be commented entities for now
-    // @ManyToOne('Vacation', { nullable: true, eager: false })
-    // @JoinColumn({ name: 'vacationableId', referencedColumnName: 'id' })
-    // vacation?: any;
-
-    @ManyToOne('PublicHoliday', { nullable: true, eager: false })
-    @JoinColumn({ name: 'vacationableId', referencedColumnName: 'id' })
-    publicHoliday?: any;
-
-    // Virtual property to get absenceReason based on type
-    get absenceReason(): any {
-        if (!this.absenceReasonType || !this.absenceReasonId) return null;
-
-        switch (this.absenceReasonType) {
-            case AbsenceReasonType.Vacation:
-                return (this as any).vacation;
-            case AbsenceReasonType.PublicHoliday:
-                return (this as any).publicHoliday;
-            default:
-                return null;
-        }
+    // Virtual property to get absenceReason based on which is set
+    get absenceReason(): Vacation | PublicHoliday | null {
+        if (this.vacation) return this.vacation;
+        if (this.publicHoliday) return this.publicHoliday;
+        return null;
     }
 
     toResponse(entity?: Attendance): IAttendanceResponse {
@@ -108,10 +98,12 @@ export class Attendance extends CompanyEntityBase implements IToResponseBase<Att
             notes: entity.notes,
             location: entity.location,
             isRemote: entity.isRemote,
-            absenceReasonId: entity.absenceReasonId,
-            absenceReasonType: entity.absenceReasonType,
+            vacationId: entity.vacationId,
+            publicHolidayId: entity.publicHolidayId,
             employee: entity.employee ? entity.employee.toResponse() : undefined,
-            absenceReason: entity.absenceReason ? entity.absenceReason.toResponse?.() || entity.absenceReason : undefined,
+            absenceReason: entity.absenceReason
+                ? (entity.absenceReason.toResponse?.() as any)
+                : undefined,
             breaks: entity.breaks ? entity.breaks.map(b => b.toResponse()) : undefined
         };
     }
@@ -127,8 +119,8 @@ export class Attendance extends CompanyEntityBase implements IToResponseBase<Att
         this.notes = requestEntity.notes;
         this.location = requestEntity.location;
         this.isRemote = requestEntity.isRemote || false;
-        this.absenceReasonId = requestEntity.absenceReasonId;
-        this.absenceReasonType = requestEntity.absenceReasonType;
+        this.vacationId = (requestEntity as any).vacationId;
+        this.publicHolidayId = (requestEntity as any).publicHolidayId;
         
         if (contextUser) super.toCompanyEntity(contextUser, id);
         
@@ -174,16 +166,12 @@ export class Attendance extends CompanyEntityBase implements IToResponseBase<Att
 
     // Check if attendance is based on approved leave
     isOnApprovedLeave(): boolean {
-        return this.status === AttendanceStatus.OnLeave && 
-               this.absenceReasonType === AbsenceReasonType.Vacation && 
-               !!this.absenceReasonId;
+        return this.status === AttendanceStatus.OnLeave && !!this.vacationId;
     }
 
     // Check if attendance is due to public holiday
     isPublicHoliday(): boolean {
-        return this.status === AttendanceStatus.Holiday && 
-               this.absenceReasonType === AbsenceReasonType.PublicHoliday && 
-               !!this.absenceReasonId;
+        return this.status === AttendanceStatus.Holiday && !!this.publicHolidayId;
     }
 
     // Get attendance type for reporting
@@ -196,24 +184,27 @@ export class Attendance extends CompanyEntityBase implements IToResponseBase<Att
     }
 
     // Helper method to get absenceReason entity info
-    getAbsenceReasonInfo(): { id: string; type: AbsenceReasonType } | null {
-        if (!this.absenceReasonId || !this.absenceReasonType) return null;
-        return {
-            id: this.absenceReasonId,
-            type: this.absenceReasonType
-        };
+    getAbsenceReasonInfo(): { id: string; type: 'Vacation' | 'PublicHoliday' } | null {
+        if (this.vacationId) return { id: this.vacationId, type: 'Vacation' };
+        if (this.publicHolidayId) return { id: this.publicHolidayId, type: 'PublicHoliday' };
+        return null;
     }
 
     // Set absenceReason reference
-    setAbsenceReason(id: string, type: AbsenceReasonType): void {
-        this.absenceReasonId = id;
-        this.absenceReasonType = type;
+    setVacation(id: string): void {
+        this.vacationId = id;
+        this.publicHolidayId = undefined;
+    }
+
+    setPublicHoliday(id: string): void {
+        this.publicHolidayId = id;
+        this.vacationId = undefined;
     }
 
     // Clear absenceReason reference
     clearAbsenceReason(): void {
-        this.absenceReasonId = undefined;
-        this.absenceReasonType = undefined;
+        this.vacationId = undefined;
+        this.publicHolidayId = undefined;
     }
 
     // Check if it's a full working day

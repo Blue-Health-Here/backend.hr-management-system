@@ -12,15 +12,15 @@ export interface IAttendanceResponse extends ICompanyResponseBase {
     workingHours?: number;
     totalBreakTime?: number;
     lateMinutes?: number;
+    earlyLeaveMinutes?: number;
     notes?: string;
     location?: string;
     isRemote: boolean;
-    // Polymorphic fields
-    absenceReasonId?: string;
-    absenceReasonType?: AbsenceReasonType;
+    vacationId?: string;
+    publicHolidayId?: string;
     employee?: any;
     // Dynamic absenceReason object based on type
-    absenceReason?: any;  // Will be Vacation or PublicHoliday based on type
+    absenceReason?: AbsenceReasonType;  // Will be Vacation or PublicHoliday based on type
     breaks?: IBreakResponse[];
 }
 
