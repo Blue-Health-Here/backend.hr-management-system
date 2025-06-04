@@ -9,6 +9,7 @@ export * from './department.enum';
 export * from './designation.enum';
 export * from './leave-type.enum';
 export * from './working-days.enum';
+export * from './shift.enum';
 export * from './public-holiday.enum';
 export * from './employee.enum';
 export * from './attendance.enum';
