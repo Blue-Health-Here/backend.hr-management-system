@@ -14,6 +14,7 @@ export * from './leave-type';
 export * from './shift';
 export * from './user-shift';
 export * from './working-days';
+export * from './schedule';
 export * from './public-holiday';
 export * from './employee';
 export * from './attendance';

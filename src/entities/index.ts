@@ -20,3 +20,4 @@ export * from './vacation';
 export * from './working-days';
 export * from './shift';
 export * from './user-shift';
+export * from './schedule';
