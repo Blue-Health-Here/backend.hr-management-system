@@ -210,14 +210,8 @@ export class CountryDataSeeder {
         ];
 
         const countryEntities = countries.map(country => {
-            return new Country().newInstanceToAdd(
-                country.name,
-                country.code,
-                country.iso2,
-                country.capital,
-                country.continent,
-                country.currency,
-                country.phone
+            return new Country().toEntity(
+                country
             );
         });
 
