@@ -12,6 +12,7 @@ export * from './department';
 export * from './designation';
 export * from './leave-type';
 export * from './shift';
+export * from './user-shift';
 export * from './working-days';
 export * from './public-holiday';
 export * from './employee';
