@@ -11,6 +11,7 @@ export * from './verification';
 export * from './department';
 export * from './designation';
 export * from './leave-type';
+export * from './working-days';
 export * from './public-holiday';
 export * from './employee';
 export * from './attendance';

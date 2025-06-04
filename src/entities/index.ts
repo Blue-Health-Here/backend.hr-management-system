@@ -17,4 +17,4 @@ export * from './employee';
 export * from './attendance';
 export * from './attendance-break';
 export * from './vacation';
- 
+export * from './working-days';
