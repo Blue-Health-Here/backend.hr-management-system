@@ -7,7 +7,6 @@ import { ToDoController } from '../todo-controller';
 import { AuthController } from '../auth-controller';
 import { DepartmentController } from '../deparment-controller';
 import { DesignationController } from '../designation-controller';
-import { Country } from '../../entities';
 import { CountryController } from '../country-controller';
 import { LeaveTypeController } from '../leave-type-controller';
 import { PublicHolidayController } from '../public-holiday-controller';
