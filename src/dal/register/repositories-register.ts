@@ -10,6 +10,15 @@ import { DesignationRepository } from "../designation-repository";
 import { CountryRepository } from "../country-repository";
 import { LeaveTypeRepository } from "../leave-type-repository";
 import { PublicHolidayRepository } from "../public-holiday-repository";
+import { EmployeeRepository } from "../employee-repository";
+import { AttendanceRepository } from "../attendance-repository";
+import { AttendanceBreakRepository } from "../attendance-break-repository";
+import { VacationRepository } from "../vacation-repository";
+import { WorkingDaysRepository } from "../working-days-repository";
+import { ShiftRepository } from "../shift-repository";
+import { UserShiftRepository } from "../user-shift-repository";
+import { SchedulerRepository } from "../scheduler-repository";
+
 
 export const registerRepositories = (container: DependencyContainer) => {
     container.register<CompanyRepository>('CompanyRepository', CompanyRepository);
@@ -23,5 +32,12 @@ export const registerRepositories = (container: DependencyContainer) => {
     container.register<DesignationRepository>('DesignationRepository', DesignationRepository);
     container.register<LeaveTypeRepository>('LeaveTypeRepository', LeaveTypeRepository);
     container.register<PublicHolidayRepository>('PublicHolidayRepository', PublicHolidayRepository);
-
+    container.register<EmployeeRepository>('EmployeeRepository', EmployeeRepository);
+    container.register<AttendanceRepository>('AttendanceRepository', AttendanceRepository);
+    container.register<AttendanceBreakRepository>('AttendanceBreakRepository', AttendanceBreakRepository);
+    container.register<VacationRepository>('VacationRepository', VacationRepository);
+    container.register<WorkingDaysRepository>('WorkingDaysRepository', WorkingDaysRepository);
+    container.register<ShiftRepository>('ShiftRepository', ShiftRepository);
+    container.register<UserShiftRepository>('UserShiftRepository', UserShiftRepository);
+    container.register<SchedulerRepository>('SchedulerRepository', SchedulerRepository);
 }
