@@ -1,0 +1,109 @@
+import { inject, injectable } from "tsyringe";
+import { FastifyReply, FastifyRequest, preHandlerHookHandler, RouteHandlerMethod } from "fastify";
+import { ControllerBase } from "./generics/controller-base";
+import { CommonRoutes } from "../constants/commonRoutes";
+import { IFetchRequest, IFilter, IVacationRequest, IVacationResponse, IGetSingleRecordFilter} from "../models";
+import { ExtendedRequest } from "../models/inerfaces/extended-Request";
+import { VacationService } from "../bl";
+import { authorize } from "../middlewares/authentication";
+import { payloadValidator, bodyValidator, queryValidator, paramsValidator } from "../middlewares/payload-validator";
+import { uuidParamSchema, createVacationsSchema, updateVacationsSchema} from "../models/payload-schemas";
+
+
+@injectable()
+export class VacationController extends ControllerBase {
+    constructor(@inject('VacationService') private readonly vacationService: VacationService){
+        super('/vacation');
+        this.middleware = authorize as preHandlerHookHandler;
+        this.endPoints = [
+            {
+                method: 'POST',
+                path: CommonRoutes.create,
+                middlewares: [bodyValidator(createVacationsSchema)],
+                handler: this.add as RouteHandlerMethod
+            },
+            {
+                method: 'POST',
+                path: CommonRoutes.getAll,
+                handler: this.getAll as RouteHandlerMethod
+            },
+            {
+                method: 'GET',
+                path: `${CommonRoutes.getById}/:id`,
+                middlewares: [paramsValidator(uuidParamSchema)],
+                handler: this.getById as RouteHandlerMethod
+            },
+            {
+                method: 'POST',
+                path: CommonRoutes.getOneByQuery,
+                handler: this.getOneByQuery as RouteHandlerMethod
+            },
+            {
+                method: 'PUT',
+                path: `${CommonRoutes.update}/:id`,
+                middlewares: [
+                    paramsValidator(uuidParamSchema),
+                    bodyValidator(updateVacationsSchema)
+                ],
+                handler: this.update as RouteHandlerMethod
+            },
+            {
+                method: 'DELETE',
+                path: `${CommonRoutes.delete}/:id`,
+                middlewares: [paramsValidator(uuidParamSchema)],
+                handler: this.delete as RouteHandlerMethod
+            }
+        ];
+
+    }
+
+
+    private add = async (req: FastifyRequest<{Body: IVacationRequest}>, res: FastifyReply) => {
+        let request = req as ExtendedRequest;
+
+        if(request.user){
+            res.send(await this.vacationService.add(req.body, request.user))
+        }
+    }
+
+    private getAll = async (req: FastifyRequest<{Body?: IFetchRequest<IVacationRequest>}>, res: FastifyReply) => {
+        let request = req as ExtendedRequest;
+
+        res.send(await this.vacationService.get(request.user, req.body))
+        if(request.user){
+        }
+    }
+
+    private getById = async (req: FastifyRequest<{Params: {id: string}}>, res: FastifyReply) => {
+        let request = req as ExtendedRequest;
+
+        res.send(await this.vacationService.getById(req.params.id, request.user));
+        if(request.user){
+        }
+    }
+
+    private getOneByQuery = async (req: FastifyRequest<{Body: IGetSingleRecordFilter<IVacationRequest>}>, res: FastifyReply) => {
+        let request = req as ExtendedRequest;
+
+        if (request.user) {
+          res.send(await this.vacationService.getOne(request.user, req.body));
+        }    
+    }
+ 
+    private delete = async (req: FastifyRequest<{Params: {id: string}}>, res: FastifyReply) => {
+        let request = req as ExtendedRequest;
+
+        if (request.user) {
+          res.send(await this.vacationService.delete(req.params.id, request.user));
+        }       
+    }
+
+    private update = async (req: FastifyRequest<{Body: IVacationRequest, Params: {id: string}}>, res: FastifyReply) => {
+        let request = req as ExtendedRequest;
+
+        if (request.user) {
+          res.send(await this.vacationService.update(req.params.id, req.body, request.user));
+        }  
+    }
+
+}
