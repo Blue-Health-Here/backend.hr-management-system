@@ -53,4 +53,20 @@ export class DepartmentService extends Service<Department, IDepartmentResponse, 
 
     }
 
+    // Private method to validate department belongs to same tenant
+    public async validateDepartmentTenant(departmentId: number, contextUser: ITokenUser): Promise<void> {
+        const department = await this.departmentRepository.firstOrDefault({
+            where: { id: departmentId.toString() }
+        });
+
+        if (!department) {
+            throw new AppError('Department not found', '404');
+        }
+
+        // Check if department belongs to same company/tenant
+        if (department.companyId !== contextUser.companyId) {
+            throw new AppError('You cannot assign designation to a department from different organization', '403');
+        }
+    }
+
 }

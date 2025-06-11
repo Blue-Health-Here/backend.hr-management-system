@@ -6,11 +6,24 @@ import { Service } from "./generics/service";
 import { generateCodeFromName, sanitizeString } from "../utility";
 import { AppError } from "../utility/app-error";
 import { Not } from "typeorm";
+import { DepartmentService } from './department-service';
 
 @injectable()
 export class DesignationService extends Service<Designation, IDesignationResponse, IDesignationRequest> {
-    constructor(@inject('DesignationRepository') private readonly designationRepository: DesignationRepository) {
+    constructor(
+        @inject('DesignationRepository') private readonly designationRepository: DesignationRepository,
+        @inject('DepartmentService') private readonly departmentService: DepartmentService
+    ) {
         super(designationRepository, () => new Designation())
+    }
+
+    async add(request: IDesignationRequest, contextUser: ITokenUser): Promise<IDesignationResponse> {
+
+        if (request.departmentId) {
+            await this.departmentService.validateDepartmentTenant(request?.departmentId, contextUser);
+        }
+
+        return super.add(request, contextUser);
     }
 
     async update(id: string, request: IDesignationRequest, contextUser: ITokenUser): Promise<IDesignationResponse> {
