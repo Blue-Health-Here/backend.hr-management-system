@@ -4,9 +4,11 @@ import { RoleService } from "../bl";
 import { FastifyReply, FastifyRequest, preHandlerHookHandler, RouteHandlerMethod } from "fastify";
 import { ExtendedRequest } from "../models/inerfaces/extended-Request";
 import { IFetchRequest, IFilter, IGetSingleRecordFilter, IRoleRequest } from "../models";
-import { Role } from "../entities";
+import { AppResponse } from "../utility";
 import { CommonRoutes } from "../constants/commonRoutes";
 import { authorize } from "../middlewares/authentication";
+import { payloadValidator, bodyValidator, queryValidator, paramsValidator } from "../middlewares/payload-validator";
+import { uuidParamSchema, createRRoleSchema, updateRoleSchema } from "../models/payload-schemas";
 
 @injectable()
 export class RoleController extends ControllerBase {
@@ -17,6 +19,7 @@ export class RoleController extends ControllerBase {
             {
                 method: 'POST',
                 path: CommonRoutes.create,
+                middlewares: [bodyValidator(createRRoleSchema)],
                 handler: this.add as RouteHandlerMethod
             },
             {
@@ -27,6 +30,7 @@ export class RoleController extends ControllerBase {
             {
                 method: 'GET',
                 path: `${CommonRoutes.getById}/:id`,
+                middlewares: [paramsValidator(uuidParamSchema)],
                 handler: this.getById as RouteHandlerMethod
             },
             {
@@ -37,11 +41,16 @@ export class RoleController extends ControllerBase {
             {
                 method: 'PUT',
                 path: `${CommonRoutes.update}/:id`,
+                middlewares: [
+                    paramsValidator(uuidParamSchema),
+                    bodyValidator(updateRoleSchema)
+                ],
                 handler: this.update as RouteHandlerMethod
             },
             {
                 method: 'DELETE',
                 path: `${CommonRoutes.delete}/:id`,
+                middlewares: [paramsValidator(uuidParamSchema)],
                 handler: this.delete as RouteHandlerMethod
             }
         ];
@@ -53,14 +62,20 @@ export class RoleController extends ControllerBase {
         let request = req as ExtendedRequest;
 
         if(request.user){
-            res.send(await this.roleService.add(req.body, request.user))
+            res.send(AppResponse.success(
+                'Role created successfully',
+                await this.roleService.add(req.body, request.user)
+            ));
         }
     }
 
     private getAll = async (req: FastifyRequest<{Body?: IFetchRequest<IRoleRequest>}>, res: FastifyReply) => {
         let request = req as ExtendedRequest;
 
-        res.send(await this.roleService.get(request.user, req.body))
+        res.send(AppResponse.success(
+            'Fetched all roles successfully',
+            await this.roleService.get(request.user, req.body)
+        ));
         if(request.user){
         }
     }
@@ -68,7 +83,10 @@ export class RoleController extends ControllerBase {
     private getById = async (req: FastifyRequest<{Params: {id: string}}>, res: FastifyReply) => {
         let request = req as ExtendedRequest;
 
-        res.send(await this.roleService.getById(req.params.id, request.user));
+        res.send(AppResponse.success(
+            'Fetched role successfully',
+            await this.roleService.getById(req.params.id, request.user)
+        ));
         if(request.user){
         }
     }
@@ -77,23 +95,32 @@ export class RoleController extends ControllerBase {
         let request = req as ExtendedRequest;
 
         if (request.user) {
-          res.send(await this.roleService.getOne(request.user, req.body));
-        }    
+          res.send(AppResponse.success(
+              'Fetched role successfully',
+              await this.roleService.getOne(request.user, req.body)
+          ));
+        }
     }
  
     private delete = async (req: FastifyRequest<{Params: {id: string}}>, res: FastifyReply) => {
         let request = req as ExtendedRequest;
 
         if (request.user) {
-          res.send(await this.roleService.delete(req.params.id, request.user));
-        }       
+          res.send(AppResponse.success(
+              'Role deleted successfully',
+              await this.roleService.delete(req.params.id, request.user)
+          ));
+        }
     }
 
     private update = async (req: FastifyRequest<{Body: IRoleRequest, Params: {id: string}}>, res: FastifyReply) => {
         let request = req as ExtendedRequest;
 
         if (request.user) {
-          res.send(await this.roleService.update(req.params.id, req.body, request.user));
-        }  
+          res.send(AppResponse.success(
+              'Role updated successfully',
+              await this.roleService.update(req.params.id, req.body, request.user)
+          ));
+        }
     }
 }
