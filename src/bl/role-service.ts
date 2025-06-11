@@ -20,8 +20,8 @@ export class RoleService extends Service<Role, IRoleResponse, IRoleRequest> {
     async add(request: IRoleRequest, contextUser: ITokenUser): Promise<IRoleResponse> {
         try {
 
-            let Modules: string[] = ["Users", "Roles"];
-            request.privilegeIds = await this.privilegeService.getPrivilegeIdsByModules(Modules);
+            // let Modules: string[] = ["Users", "Roles"];
+            // request.privilegeIds = await this.privilegeService.getPrivilegeIdsByModules(Modules);
 
 
             return super.add(request, contextUser);
