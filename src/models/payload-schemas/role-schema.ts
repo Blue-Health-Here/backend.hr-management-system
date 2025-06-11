@@ -1,5 +1,4 @@
 import z from "zod";
-import { DepartmentStatus } from "../enums";
 
 export const createRRoleSchema = z.object(
     {
