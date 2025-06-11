@@ -2,8 +2,9 @@ import { injectable, inject } from "tsyringe";
 import { ControllerBase } from "./generics/controller-base";
 import { FastifyReply, FastifyRequest, preHandlerHookHandler, RouteHandlerMethod } from "fastify";
 import { UserService } from "../bl";
-import { ExtendedRequest, ILoginRequest, ISignUpRequest, IResendCodeRequest, IForgotPasswordRequest, IResetPasswordRequest, IVerifyAccountRequest } from "../models";
-import { signUpSchema, resendCodeSchema, verifyAccountSchema, loginSchema, resetPasswordSchema, forgotPasswordSchema } from "../models/payload-schemas/index";
+import { AppResponse } from "../utility";
+import { ExtendedRequest, ILoginRequest, ISignUpRequest, IResendCodeRequest, IForgotPasswordRequest, IResetPasswordRequest, IVerifyRequest } from "../models";
+import { signUpSchema, resendCodeSchema, verifySchema, loginSchema, resetPasswordSchema, forgotPasswordSchema } from "../models/payload-schemas/index";
 import { authorize } from "../middlewares";
 import { payloadValidator, bodyValidator, queryValidator } from "../middlewares/payload-validator";
 
@@ -39,9 +40,9 @@ export class AuthController extends ControllerBase {
             },
             {
                 method: 'GET',
-                path: 'account-verify',
-                middlewares: [queryValidator(verifyAccountSchema)],
-                handler: this.verifyAccount as RouteHandlerMethod
+                path: 'verify',
+                middlewares: [queryValidator(verifySchema)],
+                handler: this.verify as RouteHandlerMethod
             },
             {
                 method: 'GET',
@@ -73,7 +74,7 @@ export class AuthController extends ControllerBase {
             path: '/', // Cookie is accessible across the entire site
             sameSite: 'lax', // Prevent the cookie from being sent with cross-site requests
         });
-        res.send(rest);
+        res.send(AppResponse.success('Login successful', rest));
     }
 
     private signUp = async (req: FastifyRequest<{Body: ISignUpRequest}>, res: FastifyReply) => {
@@ -85,7 +86,7 @@ export class AuthController extends ControllerBase {
             path: '/', // Cookie is accessible across the entire site
             sameSite: 'lax', // Prevent the cookie from being sent with cross-site requests
         });
-        res.send(rest);
+        res.send(AppResponse.success('Sign up successful', rest));
     }
 
     private getCurrentProfile = async (req: FastifyRequest, res: FastifyReply) => {
@@ -93,34 +94,35 @@ export class AuthController extends ControllerBase {
 
         if(user){
             let currentUser = await this.userService.getById(user.id, user);
-            res.send(currentUser);
+            res.send(AppResponse.success('User profile retrieved successfully', currentUser));
         }else{
-            res.status(404).send({message: 'User Not found'})
+            res.status(404).send(AppResponse.error('User Not found'));
         }
     }
 
     private logout = async (req: FastifyRequest, res: FastifyReply) => {
         res.clearCookie('auth_token',{sameSite: 'lax', secure: true, httpOnly: true, path: '/'})
-        res.send({message: 'Logged out successfully'});
-    }
+        res.send(AppResponse.success('Logged out successfully'));
+        }
 
     private resendCode = async (req: FastifyRequest<{ Querystring: IResendCodeRequest }>, res: FastifyReply) => {
         let user = await this.userService.resendCode(req.query);
-        res.send(user);
+        res.send(AppResponse.success('Verification code resent successfully', user));
     }
 
-    private verifyAccount = async (req: FastifyRequest<{ Querystring: IVerifyAccountRequest }>, res: FastifyReply) => {
-        let currentUser = await this.userService.verifyAccount(req.query);
-        res.send(currentUser);
+    private verify = async (req: FastifyRequest<{ Querystring: IVerifyRequest }>, res: FastifyReply) => {
+        let verification = await this.userService.verify(req.query);
+        res.send(AppResponse.success('Verification code verified successfully', verification));
     }
 
     private forgotPassword = async (req: FastifyRequest<{ Querystring: IForgotPasswordRequest }>, res: FastifyReply) => {
         let user = await this.userService.forgotPassword(req.query);
-        res.send(user);
+        res.send(AppResponse.success('Password reset code sent successfully', user));
     }
 
     private resetPassword = async (req: FastifyRequest<{ Body: IResetPasswordRequest }>, res: FastifyReply) => {
         let user = await this.userService.resetPassword(req.body);
-        res.send(user);
+        res.clearCookie('auth_token', { sameSite: 'lax', secure: true, httpOnly: true, path: '/' });
+        res.send(AppResponse.success('Password reset successfully', user));
     }
 }

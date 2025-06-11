@@ -1,6 +1,6 @@
 import { inject, injectable } from "tsyringe";
 import { CompanyRepository, RoleRepository, UserRepository, VerificationRepository } from "../dal";
-import { Actions, FilterMatchModes, FilterOperators, IForgotPasswordRequest, ILoginRequest, IResendCodeRequest, IResetPasswordRequest, ISignUpRequest, IUserRequest, IUserResponse, IVerifyAccountRequest } from "../models";
+import { Actions, FilterMatchModes, FilterOperators, IForgotPasswordRequest, ILoginRequest, IResendCodeRequest, IResetPasswordRequest, ISignUpRequest, IUserRequest, IUserResponse, IVerifyRequest } from "../models";
 import { Company, Role, User, Verification } from "../entities";
 import { randomUUID, randomInt } from "crypto";
 import { compareHash, encrypt, signJwt  } from "../utility";
@@ -11,6 +11,7 @@ import { ILike, QueryRunner } from "typeorm";
 import { AppError } from '../utility/app-error';
 import { PrivilegeService } from "./privilege-service";
 import { sendForgotPasswordCode, sendVerificationEmail } from "../utility/mail-utility";
+import { verificationTypes } from "../models";
 
 
 
@@ -94,7 +95,7 @@ export class UserService extends Service<User, IUserResponse, IUserRequest> {
             const addedUser = await this.userRepository.invokeDbOperations(user, Actions.Add);
 
             // Create verification record
-            const resultVerification = this.createVerificationRecord(addedUser, 'accountVerify');
+            const resultVerification = this.createVerificationRecord(addedUser, verificationTypes.AccountVerify);
             await this.verificationRepository.invokeDbOperations(resultVerification.verification, Actions.Add);
 
             // Prepare response and token
@@ -112,7 +113,7 @@ export class UserService extends Service<User, IUserResponse, IUserRequest> {
             // await this.repository.commitTransaction();
 
             // Send verification email
-            await sendVerificationEmail(addedUser.email, {
+            sendVerificationEmail(addedUser.email, {
                 name: `${addedUser.firstName} ${addedUser.lastName}`,
                 code: resultVerification.code,
             });
@@ -145,14 +146,14 @@ export class UserService extends Service<User, IUserResponse, IUserRequest> {
         return {...responseUser, token: signJwt({id: responseUser.id, name: `${responseUser.firstName} ${responseUser.lastName}`, companyId: responseUser.companyId ?? "", privileges: []})};
     }
 
-    async verifyAccount(query: IVerifyAccountRequest): Promise<IUserResponse> {
+    async verify(query: IVerifyRequest): Promise<IUserResponse> {
         const { userId, code, whichPurpose } = query;
         const [user, verification] = await Promise.all([
             this.userRepository.getOneByQuery({
                 filters: [{ field: 'id', value: userId, operator: FilterOperators.And, matchMode: FilterMatchModes.Equal }]
             }),
             this.verificationRepository.firstOrDefault({ 
-                where: { userId: userId },
+                where: { userId, code },
                 order: { createdAt: 'DESC' },
              })
         ]);
@@ -164,15 +165,18 @@ export class UserService extends Service<User, IUserResponse, IUserRequest> {
         if (verification.expiresAt < new Date()) throw new AppError('Verification code has expired', '400');
         if (verification.code !== code) throw new AppError('Invalid verification code', '400');
 
-        user.isEmailVerified = true;
-        verification.verified = true;
+        if (whichPurpose === verificationTypes.AccountVerify) {
+            user.isEmailVerified = true;
+            verification.verified = true;
 
-        await Promise.all([
-            this.userRepository.invokeDbOperations(user, Actions.Update),
-            this.verificationRepository.invokeDbOperations(verification, Actions.Update)
-        ]);
+            await Promise.all([
+                this.userRepository.invokeDbOperations(user, Actions.Update),
+                this.verificationRepository.invokeDbOperations(verification, Actions.Update)
+            ]);
+        }
 
         return user.toResponse();
+
     }
 
     private createCompanyFromRequest(request: ISignUpRequest): Company {
@@ -341,15 +345,15 @@ export class UserService extends Service<User, IUserResponse, IUserRequest> {
         const resultVerification = this.createVerificationRecord(user, whichPurpose);
         await this.verificationRepository.invokeDbOperations(resultVerification.verification, Actions.Add);
 
-        if (whichPurpose === 'accountVerify') {
+        if (whichPurpose === verificationTypes.AccountVerify) {
             // Send verification email
-            await sendVerificationEmail(user.email, {
+            sendVerificationEmail(user.email, {
                 name: `${user.firstName} ${user.lastName}`,
                 code: resultVerification.code,
             });
-        } else if (whichPurpose === 'forgotPassword') {
+        } else if (whichPurpose === verificationTypes.ForgotPassword) {
             // Send forgot password email
-            await sendForgotPasswordCode(user.email, {
+            sendForgotPasswordCode(user.email, {
                 name: `${user.firstName} ${user.lastName}`,
                 code: resultVerification.code,
             });
@@ -367,11 +371,11 @@ export class UserService extends Service<User, IUserResponse, IUserRequest> {
         if (!user) throw new AppError('User not found', '404');
 
         // Create verification record
-        const resultVerification = this.createVerificationRecord(user, 'forgotPassword');
+        const resultVerification = this.createVerificationRecord(user, verificationTypes.ForgotPassword);
         await this.verificationRepository.invokeDbOperations(resultVerification.verification, Actions.Add);
 
         // Send forgot password email
-        await sendForgotPasswordCode(user.email, {
+        sendForgotPasswordCode(user.email, {
             name: `${user.firstName} ${user.lastName}`,
             code: resultVerification.code,
         });

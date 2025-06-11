@@ -5,7 +5,7 @@ export interface ApiSuccess<T> {
 }
 
 export interface ApiError {
-  // success: false;
+  success: false;
   message: string;
   errors?: { field: string; message: string }[];  // ✅ Added
   stack?: string;
@@ -22,7 +22,7 @@ export class AppResponse {
 
   static error(message: string, stack?: string, errors?: { field: string; message: string }[]): ApiError {
     return {
-      // success: false,
+      success: false,
       message,
       ...(errors ? { errors } : {}),
       ...(stack ? { stack } : {})

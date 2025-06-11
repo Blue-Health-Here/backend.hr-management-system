@@ -1,4 +1,7 @@
 import z, { date } from "zod";
+import { verificationTypeValues } from "../enums";
+
+
 
 export const signUpSchema = z.object({
     userName: z.string().min(2).max(20),
@@ -22,14 +25,17 @@ export const loginSchema = z.object({
     password: z.string().min(8).max(100),
 });
 
-export const verifyAccountSchema = z.object({
-    userId: z.string().email("Invalid email format"),
+export const verifySchema = z.object({
+    userId: z.string().uuid(),
+    whichPurpose: z.enum(verificationTypeValues , {
+        errorMap: () => ({ message: "Type must be either 'accountVerify' or 'forgotPassword'" })
+    }),
     code: z.string().min(6).max(6),
 });
 
 export const resendCodeSchema = z.object({
     email: z.string().email("Invalid email format"),
-    type: z.enum(['accountVerify', 'forgotPassword'], {
+    whichPurpose: z.enum(verificationTypeValues , {
         errorMap: () => ({ message: "Type must be either 'accountVerify' or 'forgotPassword'" })
     }),
 });

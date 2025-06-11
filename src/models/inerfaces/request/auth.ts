@@ -19,7 +19,7 @@ export interface IResetPasswordRequest {
     newPassword: string;
 }
 
-export interface IVerifyAccountRequest {
+export interface IVerifyRequest {
     userId: string;
     code: string;
     whichPurpose: string;

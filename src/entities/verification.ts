@@ -2,7 +2,7 @@ import { Column, Entity, Index, ManyToOne, JoinColumn } from "typeorm";
 import { EntityBase } from "./base-entities/entity-base";
 import { User } from "./user";
 import { ITokenUser, verificationMethods } from "../models";
-import { verificationTypes } from "../models/enums";
+import { verificationTypeValues } from "../models/enums";
 
 @Entity('Verification')
 export class Verification extends EntityBase {
@@ -20,7 +20,7 @@ export class Verification extends EntityBase {
     @Column({ type: 'enum', enum: verificationMethods, default: null })
     type!: string
 
-    @Column({ type: 'enum', enum: verificationTypes, default: null })
+    @Column({ type: 'enum', enum: verificationTypeValues, default: null })
     whichPurpose!: string // accountVerify, forgotPassword, etc.
 
     @Column({ type: 'boolean', default: false })
