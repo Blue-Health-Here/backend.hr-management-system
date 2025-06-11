@@ -4,7 +4,7 @@ import { ControllerBase } from "./generics/controller-base";
 import { CommonRoutes } from "../constants/commonRoutes";
 import { IFetchRequest, IFilter, IGetSingleRecordFilter, IDepartmentRequest } from "../models";
 import { ExtendedRequest } from "../models/inerfaces/extended-Request";
-import { Department } from "../entities";
+import { AppResponse } from "../utility";
 import { DepartmentService } from "../bl";
 import { authorize } from "../middlewares/authentication";
 import { payloadValidator, bodyValidator, queryValidator, paramsValidator } from "../middlewares/payload-validator";
@@ -69,23 +69,21 @@ export class DepartmentController extends ControllerBase {
         let request = req as ExtendedRequest;
 
         if(request.user){
-            res.send(await this.departmentService.add(req.body, request.user))
+            res.send(AppResponse.success('Department added successfully', await this.departmentService.add(req.body, request.user)))
         }
     }
 
     private getAll = async (req: FastifyRequest<{Body?: IFetchRequest<IDepartmentRequest>}>, res: FastifyReply) => {
         let request = req as ExtendedRequest;
-
-        res.send(await this.departmentService.get(request.user, req.body))
         if(request.user){
+            res.send(AppResponse.success('Departments fetched successfully', await this.departmentService.get(request.user, req.body)))
         }
     }
 
     private getById = async (req: FastifyRequest<{Params: {id: string}}>, res: FastifyReply) => {
         let request = req as ExtendedRequest;
-
-        res.send(await this.departmentService.getById(req.params.id, request.user));
-        if(request.user){
+        if(request.user){ 
+            res.send(AppResponse.success('Department fetched successfully', await this.departmentService.getById(req.params.id, request.user)));
         }
     }
 
@@ -93,7 +91,7 @@ export class DepartmentController extends ControllerBase {
         let request = req as ExtendedRequest;
 
         if (request.user) {
-          res.send(await this.departmentService.getOne(request.user, req.body));
+          res.send(AppResponse.success('Department fetched successfully', await this.departmentService.getOne(request.user, req.body)));
         }    
     }
  
@@ -101,7 +99,7 @@ export class DepartmentController extends ControllerBase {
         let request = req as ExtendedRequest;
 
         if (request.user) {
-          res.send(await this.departmentService.delete(req.params.id, request.user));
+          res.send(AppResponse.success('Department deleted successfully', await this.departmentService.delete(req.params.id, request.user)));
         }       
     }
 
@@ -109,7 +107,7 @@ export class DepartmentController extends ControllerBase {
         let request = req as ExtendedRequest;
 
         if (request.user) {
-          res.send(await this.departmentService.update(req.params.id, req.body, request.user));
+          res.send(AppResponse.success('Department updated successfully', await this.departmentService.update(req.params.id, req.body, request.user)));
         }  
     }
 
@@ -118,7 +116,7 @@ export class DepartmentController extends ControllerBase {
         let request = req as ExtendedRequest;
 
         if (request.user) {
-            res.send(await this.departmentService.getDepartmentWithDesignations(req.params.id, request.user));
+            res.send(AppResponse.success('Department fetched successfully', await this.departmentService.getDepartmentWithDesignations(req.params.id, request.user)));
         }
     }
 
