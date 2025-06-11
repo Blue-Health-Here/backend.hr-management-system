@@ -3,6 +3,7 @@ import { FastifyReply, FastifyRequest, preHandlerHookHandler, RouteHandlerMethod
 import { ControllerBase } from "./generics/controller-base";
 import { CommonRoutes } from "../constants/commonRoutes";
 import { ExtendedRequest } from "../models/inerfaces/extended-Request";
+import { AppResponse } from "../utility";
 import { IFetchRequest, IFilter, IGetSingleRecordFilter, IDesignationRequest } from "../models";
 import { DesignationService } from "../bl";
 import { authorize } from "../middlewares/authentication";
@@ -62,23 +63,31 @@ export class DesignationController extends ControllerBase {
         let request = req as ExtendedRequest;
 
         if(request.user){
-            res.send(await this.designationService.add(req.body, request.user))
+            res.send(AppResponse.success(
+                'Designation created successfully',
+                await this.designationService.add(req.body, request.user),
+            ));
         }
     }
 
     private getAll = async (req: FastifyRequest<{Body?: IFetchRequest<IDesignationRequest>}>, res: FastifyReply) => {
         let request = req as ExtendedRequest;
-
-        res.send(await this.designationService.get(request.user, req.body))
         if(request.user){
+            res.send(AppResponse.success(
+                'Fetched all designations successfully',
+                await this.designationService.get(request.user, req.body)
+            ));
         }
     }
 
     private getById = async (req: FastifyRequest<{Params: {id: string}}>, res: FastifyReply) => {
         let request = req as ExtendedRequest;
-
-        res.send(await this.designationService.getById(req.params.id, request.user));
         if(request.user){
+
+        res.send(AppResponse.success(
+            'Fetched designation successfully',
+            await this.designationService.getById(req.params.id, request.user)
+        ));
         }
     }
 
@@ -94,16 +103,22 @@ export class DesignationController extends ControllerBase {
         let request = req as ExtendedRequest;
 
         if (request.user) {
-          res.send(await this.designationService.delete(req.params.id, request.user));
-        }       
+          res.send(AppResponse.success(
+              'Designation deleted successfully',
+              await this.designationService.delete(req.params.id, request.user)
+          ));
+        }
     }
 
     private update = async (req: FastifyRequest<{Body: IDesignationRequest, Params: {id: string}}>, res: FastifyReply) => {
         let request = req as ExtendedRequest;
 
         if (request.user) {
-          res.send(await this.designationService.update(req.params.id, req.body, request.user));
-        }  
+          res.send(AppResponse.success(
+              'Designation updated successfully',
+              await this.designationService.update(req.params.id, req.body, request.user)
+          ));
+        }
     }
 
 }

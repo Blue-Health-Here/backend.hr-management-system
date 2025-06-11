@@ -11,7 +11,7 @@ import { generateCodeFromName, sanitizeString } from "../utility";
 export class Designation extends CompanyEntityBase implements IToResponseBase<Designation, IDesignationResponse> {
     
     @Column({ type: 'int', nullable: true })
-    departmentId?: number;
+    departmentId?: string;
 
     @Column({ type: 'varchar', length: 255, nullable: false })
     title!: string;
@@ -42,11 +42,11 @@ export class Designation extends CompanyEntityBase implements IToResponseBase<De
     @Column({ type: 'int', nullable: true })
     sortOrder?: number;
 
-    // Relationship with Department - nullable and SET NULL on delete
+    // Relationship with Department - CASCADE on delete
     @ManyToOne(() => Department, { 
         nullable: true, 
         eager: false,
-        onDelete: 'SET NULL' // This will set departmentId to NULL when department is deleted
+        onDelete: 'CASCADE' // This will delete the designation when department is deleted
     })
     @JoinColumn({ name: 'departmentId', referencedColumnName: 'id' })
     department?: Department;

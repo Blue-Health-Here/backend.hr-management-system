@@ -54,9 +54,9 @@ export class DepartmentService extends Service<Department, IDepartmentResponse, 
     }
 
     // Private method to validate department belongs to same tenant
-    public async validateDepartmentTenant(departmentId: number, contextUser: ITokenUser): Promise<void> {
+    public async validateDepartmentTenant(departmentId: string, contextUser: ITokenUser): Promise<void> {
         const department = await this.departmentRepository.firstOrDefault({
-            where: { id: departmentId.toString() }
+            where: { id: departmentId }
         });
 
         if (!department) {

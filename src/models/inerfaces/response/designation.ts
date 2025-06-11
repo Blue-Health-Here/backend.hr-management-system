@@ -3,7 +3,7 @@ import { ICompanyResponseBase } from "./response-base";
 import { IDepartmentResponse } from "./department";
 
 export interface IDesignationResponse extends ICompanyResponseBase {
-    departmentId?: number;
+    departmentId?: string;
     title: string;
     code?: string;
     jobDescription?: string;
@@ -15,7 +15,7 @@ export interface IDesignationResponse extends ICompanyResponseBase {
 }
 
 export interface IDepartmentDesignationResponse extends ICompanyResponseBase {
-    departmentId?: number;
+    departmentId?: string;
     title: string;
     code?: string;
     jobDescription?: string;

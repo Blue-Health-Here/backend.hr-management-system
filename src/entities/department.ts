@@ -45,7 +45,9 @@ export class Department extends CompanyEntityBase implements IToResponseBase<Dep
     children!: Department[];
 
     // NEW: One-to-Many relationship with Designations
-    @OneToMany(() => Designation, (designation) => designation.department)
+    @OneToMany(() => Designation, (designation) => designation.department, {
+        eager: false
+    })
     designations!: Designation[];
 
     @ManyToMany(() => PublicHoliday, publicHoliday => publicHoliday.departments)

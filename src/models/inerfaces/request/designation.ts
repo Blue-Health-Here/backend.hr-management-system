@@ -2,7 +2,7 @@ import { DesignationStatus, LevelHierarchy } from "../../enums";
 
 export interface IDesignationRequest {
     title: string;
-    departmentId?: number;
+    departmentId?: string;
     code?: string;
     jobDescription?: string;
     levelHierarchy?: LevelHierarchy;
