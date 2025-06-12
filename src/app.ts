@@ -36,13 +36,14 @@ app.get("/", (req, res) => {
   res.send({ message: "Hello, Fastify!" });
 });
 
-app.listen({ port: PORT, host: '0.0.0.0' }, (err, address) => {
+app.listen({ port: PORT }, (err, add) => {
+
   if (err) {
     error(err);
-    process.exit(1);
+    return;
   }
 
-  log(`🚀 Fastify server running at ${address}`);
+  log(`Fastify server running at http://localhost:${PORT}`);
 });
 
 process.on('unhandledRejection', (reason, promise) => {
