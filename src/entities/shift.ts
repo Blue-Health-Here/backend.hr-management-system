@@ -19,7 +19,7 @@ export class Shift extends CompanyEntityBase implements IToResponseBase<Shift, I
     @Column({ type: 'varchar', length: 50, nullable: false })
     code!: string;
 
-    @Column({ type: 'varchar', length: 20, nullable: false })
+    @Column({ type: 'enum', enum: ShiftType, nullable: false })
     shiftType!: ShiftType;
 
     @Column({ type: 'time', nullable: false })
@@ -73,7 +73,7 @@ export class Shift extends CompanyEntityBase implements IToResponseBase<Shift, I
         this.order = entityRequest.order ?? 0;
         
         // Calculate working hours automatically
-        this.workingHours = this.calculateWorkingHours(entityRequest.startTime, entityRequest.endTime);
+        this.workingHours = Shift.calculateWorkingHours(entityRequest.startTime, entityRequest.endTime);
 
         if(contextUser) super.toCompanyEntity(contextUser, id);
         
@@ -81,24 +81,28 @@ export class Shift extends CompanyEntityBase implements IToResponseBase<Shift, I
     }
 
     // Helper method to calculate working hours in minutes
-    private calculateWorkingHours(startTime: string, endTime: string): number {
-        if (!startTime || !endTime) return 0;
+static calculateWorkingHours(startTime: string, endTime: string): number {
+    if (!startTime || !endTime) return 0;
+    
+    try {
+        // Use current date instead of static 2000-01-01
+        const today = new Date().toISOString().split('T')[0]; // Get current date in YYYY-MM-DD format
+        const start = new Date(`${today}T${startTime}`);
+        const end = new Date(`${today}T${endTime}`);
         
-        try {
-            const start = new Date(`2000-01-01T${startTime}`);
-            const end = new Date(`2000-01-01T${endTime}`);
-            
-            if (end <= start) {
-                // Handle next day scenario (night shift)
-                const nextDayEnd = new Date(`2000-01-02T${endTime}`);
-                return Math.round((nextDayEnd.getTime() - start.getTime()) / (1000 * 60));
-            }
-            
-            return Math.round((end.getTime() - start.getTime()) / (1000 * 60));
-        } catch (error) {
-            return 0;
+        if (end <= start) {
+            // Handle next day scenario (night shift)
+            const nextDay = new Date(start);
+            nextDay.setDate(nextDay.getDate() + 1);
+            nextDay.setHours(end.getHours(), end.getMinutes(), end.getSeconds());
+            return Math.round((nextDay.getTime() - start.getTime()) / (1000 * 60));
         }
+        
+        return Math.round((end.getTime() - start.getTime()) / (1000 * 60));
+    } catch (error) {
+        return 0;
     }
+}
 
     // Helper method to get net working hours (excluding break)
     getNetWorkingHours(): number {
