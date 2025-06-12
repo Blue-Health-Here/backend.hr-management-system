@@ -25,6 +25,8 @@
     "@fastify/cookie": "^11.0.2",
     "@fastify/cors": "^10.0.2",
     "@fastify/multipart": "^9.0.3",
+    "@types/node": "^24.0.1",
+    "@types/reflect-metadata": "^0.0.5",
     "axios": "^1.7.9",
     "bcrypt": "^5.1.1",
     "cloudinary": "^2.5.1",
