@@ -1,8 +1,8 @@
 import { Column, Entity, Index, ManyToOne, JoinColumn } from "typeorm";
 import { EntityBase } from "./base-entities/entity-base";
 import { User } from "./user";
-import { ITokenUser, verificationMethods } from "../models";
-import { verificationTypeValues } from "../models/enums";
+import { ITokenUser, VerificationMethods } from "../models";
+import { VerificationTypes } from "../models/enums";
 
 @Entity('Verification')
 export class Verification extends EntityBase {
@@ -17,11 +17,11 @@ export class Verification extends EntityBase {
     @Column({ type: 'varchar', length: 255, default: null })
     url?: string; // URL for verification
 
-    @Column({ type: 'enum', enum: verificationMethods, default: null })
-    type!: string
+    @Column({ type: 'enum', enum: VerificationMethods, default: null })
+    type!: VerificationMethods
 
-    @Column({ type: 'enum', enum: verificationTypeValues, default: null })
-    whichPurpose!: string // accountVerify, forgotPassword, etc.
+    @Column({ type: 'enum', enum: VerificationTypes, default: null })
+    whichPurpose!: VerificationTypes; // accountVerify, forgotPassword, etc.
 
     @Column({ type: 'boolean', default: false })
     verified!: boolean;

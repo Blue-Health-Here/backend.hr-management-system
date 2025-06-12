@@ -11,7 +11,7 @@ import { ILike, QueryRunner } from "typeorm";
 import { AppError } from '../utility/app-error';
 import { PrivilegeService } from "./privilege-service";
 import { sendForgotPasswordCode, sendVerificationEmail } from "../utility/mail-utility";
-import { verificationTypes } from "../models";
+import { VerificationTypes } from "../models";
 
 
 
@@ -95,7 +95,7 @@ export class UserService extends Service<User, IUserResponse, IUserRequest> {
             const addedUser = await this.userRepository.invokeDbOperations(user, Actions.Add);
 
             // Create verification record
-            const resultVerification = this.createVerificationRecord(addedUser, verificationTypes.AccountVerify);
+            const resultVerification = this.createVerificationRecord(addedUser, VerificationTypes.AccountVerify);
             await this.verificationRepository.invokeDbOperations(resultVerification.verification, Actions.Add);
 
             // Prepare response and token
@@ -165,7 +165,7 @@ export class UserService extends Service<User, IUserResponse, IUserRequest> {
         if (verification.expiresAt < new Date()) throw new AppError('Verification code has expired', '400');
         if (verification.code !== code) throw new AppError('Invalid verification code', '400');
 
-        if (whichPurpose === verificationTypes.AccountVerify) {
+        if (whichPurpose === VerificationTypes.AccountVerify) {
             user.isEmailVerified = true;
             verification.verified = true;
 
@@ -345,13 +345,13 @@ export class UserService extends Service<User, IUserResponse, IUserRequest> {
         const resultVerification = this.createVerificationRecord(user, whichPurpose);
         await this.verificationRepository.invokeDbOperations(resultVerification.verification, Actions.Add);
 
-        if (whichPurpose === verificationTypes.AccountVerify) {
+        if (whichPurpose === VerificationTypes.AccountVerify) {
             // Send verification email
             sendVerificationEmail(user.email, {
                 name: `${user.firstName} ${user.lastName}`,
                 code: resultVerification.code,
             });
-        } else if (whichPurpose === verificationTypes.ForgotPassword) {
+        } else if (whichPurpose === VerificationTypes.ForgotPassword) {
             // Send forgot password email
             sendForgotPasswordCode(user.email, {
                 name: `${user.firstName} ${user.lastName}`,
@@ -371,7 +371,7 @@ export class UserService extends Service<User, IUserResponse, IUserRequest> {
         if (!user) throw new AppError('User not found', '404');
 
         // Create verification record
-        const resultVerification = this.createVerificationRecord(user, verificationTypes.ForgotPassword);
+        const resultVerification = this.createVerificationRecord(user, VerificationTypes.ForgotPassword);
         await this.verificationRepository.invokeDbOperations(resultVerification.verification, Actions.Add);
 
         // Send forgot password email

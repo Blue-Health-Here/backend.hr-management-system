@@ -1,10 +1,13 @@
 
-export const verificationTypes = {
-    AccountVerify: 'accountVerify',
-    ForgotPassword: 'forgotPassword'
-} as const;
+export enum VerificationTypes {
+    AccountVerify = 'accountVerify',
+    ForgotPassword = 'forgotPassword'
+}
 // Extract the values for TypeORM and Zod
-export const verificationTypeValues = Object.values(verificationTypes) as [string, ...string[]];
+export const verificationTypeValues = Object.values(VerificationTypes) as [string, ...string[]];
 
 
-export const verificationMethods = ['email', 'phone'] as const;
+export enum VerificationMethods {
+    Email = 'email',
+    Phone = 'phone'
+}
