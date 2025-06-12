@@ -15,11 +15,14 @@ export const dataSource = new DataSource({
     database: process.env.DB_DataBase ?? "",
     username: process.env.DB_userId ?? "",
     password: process.env.DB_Password ?? "",
-    port: process.env.DB_Port ? parseInt(process.env.DB_Port) : 1433,
+    port: process.env.DB_Port ? parseInt(process.env.DB_Port) : 5432,
     migrations: ["src/dal/migrations/**/*.ts"],
-    entities: [ Company, Country, User, Role,  Privilege, ToDo, ActivityLog, AuditLog, Verification, Department, Designation, LeaveType, PublicHoliday, Employee, Attendance, AttendanceBreak, Vacation, WorkingDays, Shift, UserShift, Scheduler ],
+    entities: [ Company, Country, User, Role, Privilege, ToDo, ActivityLog, AuditLog, Verification, Department, Designation, LeaveType, PublicHoliday, Employee, Attendance, AttendanceBreak, Vacation, WorkingDays, Shift, UserShift, Scheduler ],
     synchronize: true,
-    ssl: false
+    // Production mein SSL enable karo
+    ssl: {
+        rejectUnauthorized: false
+    }
 });
 
 
