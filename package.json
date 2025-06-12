@@ -61,7 +61,7 @@
     "@types/lodash": "^4.17.15",
     "@types/moment": "^2.13.0",
     "@types/moment-timezone": "^0.5.30",
-    "@types/node": "^22.13.4",
+    "@types/node": "^22.15.31",
     "@types/nodemailer": "^6.4.17",
     "@types/pg": "^8.11.11",
     "@types/reflect-metadata": "^0.1.0",
