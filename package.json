@@ -7,9 +7,10 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "start": "node ./dist/app.js",
-    "build": "tsc -p ./tsconfig.json",
+    "build": "tsc -p ./tsconfig.json && npm run copy-templates",
     "dev": "nodemon --exec ts-node ./src/app.ts",
     "typeorm": "typeorm-ts-node-commonjs",
+    "copy-templates": "cpx \"src/templates/emails/**/*\" dist/templates/emails",
     "schema:sync": "npx typeorm-ts-node-commonjs schema:sync",
     "typeorm:cache": "npx typeorm-ts-node-commonjs cache:clear",
     "schema:drop": "npx typeorm-ts-node-commonjs -d ./src/dal/db/db-source.ts",
@@ -66,6 +67,7 @@
     "@types/nodemailer": "^6.4.17",
     "@types/pg": "^8.11.11",
     "@types/socket.io": "^3.0.2",
+    "cpx": "^1.5.0",
     "nodemon": "^3.1.9",
     "ts-node": "^10.9.2",
     "typescript": "^5.8.3"

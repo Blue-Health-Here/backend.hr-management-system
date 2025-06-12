@@ -19,10 +19,7 @@ export const dataSource = new DataSource({
     migrations: ["src/dal/migrations/**/*.ts"],
     entities: [ Company, Country, User, Role, Privilege, ToDo, ActivityLog, AuditLog, Verification, Department, Designation, LeaveType, PublicHoliday, Employee, Attendance, AttendanceBreak, Vacation, WorkingDays, Shift, UserShift, Scheduler ],
     synchronize: true,
-    // Production mein SSL enable karo
-    ssl: {
-        rejectUnauthorized: false
-    }
+    ssl: process.env.NODE_ENV === "development" ? false : { rejectUnauthorized: false }
 });
 
 
