@@ -6,4 +6,5 @@ export interface IWorkingDaysRequest {
     dayName: DayName; // Use enum for day names
     isWorkingDay?: boolean; // Optional with default true
     notes?: string; // Optional notes
+    dayOfWeek?: number; // Optional day of the week
 }

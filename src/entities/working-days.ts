@@ -9,11 +9,11 @@ import { ICompanyResponseBase } from "../models/inerfaces/response/response-base
 @Unique(['companyId', 'dayOfWeek'])
 @Index(['companyId', 'dayOfWeek'], { unique: true })
 export class WorkingDays extends CompanyEntityBase implements IToResponseBase<WorkingDays, IWorkingDaysResponse> {
-    
+
     @Column({ type: 'smallint', nullable: false })
     dayOfWeek!: number; // 1=Monday, 2=Tuesday... 7=Sunday
 
-    @Column({ type: 'varchar', length: 10, nullable: false })
+    @Column({ type: 'enum', enum: DayName, nullable: false })
     dayName!: DayName;
 
     @Column({ type: 'boolean', default: true })
@@ -36,7 +36,7 @@ export class WorkingDays extends CompanyEntityBase implements IToResponseBase<Wo
 
     toEntity = (entityRequest: IWorkingDaysRequest, id?: string, contextUser?: ITokenUser): WorkingDays => {
         // Set dayOfWeek based on dayName
-        this.dayOfWeek = this.getDayNumber(entityRequest.dayName);
+        this.dayOfWeek = WorkingDays.getDayNumber(entityRequest.dayName);
         this.dayName = entityRequest.dayName;
         this.isWorkingDay = entityRequest.isWorkingDay ?? true;
         this.notes = entityRequest.notes;
@@ -47,7 +47,7 @@ export class WorkingDays extends CompanyEntityBase implements IToResponseBase<Wo
     }
 
     // Helper method to get day number from day name
-    private getDayNumber(dayName: DayName): number {
+    static getDayNumber(dayName: DayName): number {
         const days: { [key in DayName]: number } = {
             [DayName.MONDAY]: 1,
             [DayName.TUESDAY]: 2,
