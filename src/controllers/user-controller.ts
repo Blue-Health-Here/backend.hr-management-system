@@ -79,7 +79,7 @@ export class UserController extends ControllerBase {
     private getById = async (req: FastifyRequest<{Params: {id: string}}>, res: FastifyReply) => {
         let request = req as ExtendedRequest;
 
-        res.send(await this.userService.getById(req.params.id, request.user));
+        res.send(await this.userService.getById(req.params.id));
         if(request.user){
         }
     }

@@ -93,7 +93,7 @@ export class AuthController extends ControllerBase {
         let {user} = req as ExtendedRequest;
 
         if(user){
-            let currentUser = await this.userService.getById(user.id, user);
+            let currentUser = await this.userService.getById(user.id);
             res.send(AppResponse.success('User profile retrieved successfully', currentUser));
         }else{
             res.status(404).send(AppResponse.error('User Not found'));

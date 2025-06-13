@@ -412,4 +412,18 @@ export class UserService extends Service<User, IUserResponse, IUserRequest> {
 
         return user.toResponse();
     }
+
+
+    async getById(id: string): Promise<IUserResponse> {
+        if (!id) throw new AppError('User ID is required', '400');
+
+        const userEntity = await this.userRepository.getOneByQuery({
+            filters: [{ field: 'id', value: id, operator: FilterOperators.And, matchMode: FilterMatchModes.Equal }],
+            relations: { company: true, role: true }
+        });
+
+        if (!userEntity) throw new AppError('User not found', '404');
+
+        return userEntity.toResponse();
+    }
 }
