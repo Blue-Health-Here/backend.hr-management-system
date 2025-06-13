@@ -1,7 +1,7 @@
 import { inject, injectable } from "tsyringe";
 import { EmployeeRepository, RoleRepository, UserRepository } from "../dal";
 import { Employee, Role, User } from "../entities";
-import { Actions, IEmployeeRequest, IEmployeeResponse, ITokenUser } from "../models";
+import { Actions, IEmployeeRequest, IEmployeeResponse, IEmployeeStatsResponse, ITokenUser } from "../models";
 import { Service } from "./generics/service";
 import { encrypt } from "../utility";
 import { Not } from "typeorm";
@@ -187,6 +187,26 @@ export class EmployeeService extends Service<Employee, IEmployeeResponse, IEmplo
                 }
             }
         }
+    }
+
+    public async getStats(contextUser: ITokenUser): Promise<IEmployeeStatsResponse> {
+
+        let employees = await super.get(contextUser);
+        let totalEmployees = employees.data.length;
+        let activeEmployees = employees.data.filter(emp => emp.status === 'active').length;
+        let inactiveEmployees = employees.data.filter(emp => emp.status === 'inactive').length;
+        // last 30 days new joinings
+        let newJoinings = employees.data.filter(emp =>
+            emp.joiningDate &&
+            new Date(emp.joiningDate) >= new Date(new Date().setDate(new Date().getDate() - 30))
+        ).length;
+
+        return {
+            totalEmployees,
+            activeEmployees,
+            inactiveEmployees,
+            newJoinings
+        };
     }
 
 

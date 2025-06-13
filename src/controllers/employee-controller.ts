@@ -53,7 +53,13 @@ export class EmployeeController extends ControllerBase {
                 path: `${CommonRoutes.delete}/:id`,
                 middlewares: [paramsValidator(uuidParamSchema)],
                 handler: this.delete as RouteHandlerMethod
+            },
+            {
+                method: 'GET',
+                path: `stats`,
+                handler: this.getStats as RouteHandlerMethod
             }
+
         ];
 
     }
@@ -134,6 +140,19 @@ export class EmployeeController extends ControllerBase {
                   await this.employeeService.update(req.params.id, req.body, request.user)
               )
           );
+        }
+    }
+
+    private getStats = async (req: FastifyRequest, res: FastifyReply) => {
+        let request = req as ExtendedRequest;
+
+        if (request.user) {
+            res.send(
+                AppResponse.success(
+                    "Fetched employee stats successfully",
+                    await this.employeeService.getStats(request.user)
+                )
+            );
         }
     }
 

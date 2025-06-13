@@ -21,3 +21,11 @@ export interface IEmployeeResponse extends ICompanyResponseBase {
     department?: IDepartmentResponse; 
     designation?: IDesignationResponse; 
 }
+
+
+export interface IEmployeeStatsResponse {
+    totalEmployees: number;
+    activeEmployees: number;
+    inactiveEmployees: number;
+    newJoinings: number;
+}
