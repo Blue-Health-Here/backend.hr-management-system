@@ -150,7 +150,8 @@ export class UserService extends Service<User, IUserResponse, IUserRequest> {
         const { userId, code, whichPurpose } = query;
         const [user, verification] = await Promise.all([
             this.userRepository.getOneByQuery({
-                filters: [{ field: 'id', value: userId, operator: FilterOperators.And, matchMode: FilterMatchModes.Equal }]
+                filters: [{ field: 'id', value: userId, operator: FilterOperators.And, matchMode: FilterMatchModes.Equal }],
+                relations: { company: true, role: true }
             }),
             this.verificationRepository.firstOrDefault({ 
                 where: { userId, code },
