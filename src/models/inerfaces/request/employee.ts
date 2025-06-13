@@ -1,4 +1,5 @@
 import { EmployeeStatus } from "../../enums";
+import { IDefaultUserRequest } from "./user";
 
 // Employee Request Interface
 export interface IEmployeeRequest {
@@ -13,4 +14,6 @@ export interface IEmployeeRequest {
     phoneNumber?: string;
     emergencyContact?: string;
     probationEndDate?: Date;
+    user: IDefaultUserRequest
+    
 }

@@ -39,9 +39,9 @@ export class Employee extends CompanyEntityBase implements IToResponseBase<Emplo
 
     // Employee Status
     @Column({ 
-        type: 'text', 
-        default: EmployeeStatus.Probation,
-        nullable: false 
+        type: 'enum', 
+        enum: EmployeeStatus,
+        default: EmployeeStatus.Active,
     })
     status!: EmployeeStatus;
 
@@ -61,15 +61,15 @@ export class Employee extends CompanyEntityBase implements IToResponseBase<Emplo
     @OneToOne(() => User, { 
         cascade: false, 
         nullable: false,
-        eager: false // Load only when needed
+        eager: true // Load only when needed
     })
     @JoinColumn({ name: 'userId', referencedColumnName: 'id' })
-    user!: User;
+    user?: User;
 
     // Department Relationship (Many-to-One)
     @ManyToOne(() => Department, { 
         nullable: false,
-        eager: false
+        eager: true
     })
     @JoinColumn({ name: 'departmentId', referencedColumnName: 'id' })
     department!: Department;
@@ -77,7 +77,7 @@ export class Employee extends CompanyEntityBase implements IToResponseBase<Emplo
     // Designation Relationship (Many-to-One)
     @ManyToOne(() => Designation, { 
         nullable: false,
-        eager: false
+        eager: true
     })
     @JoinColumn({ name: 'designationId', referencedColumnName: 'id' })
     designation!: Designation;

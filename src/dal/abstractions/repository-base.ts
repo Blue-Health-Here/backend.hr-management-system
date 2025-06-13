@@ -1,5 +1,5 @@
 import { EntityManager, FindManyOptions, FindOneOptions, FindOptionsRelations, FindOptionsWhere, QueryRunner, SelectQueryBuilder } from "typeorm";
-import { Actions, IDataSourceResponse, IFetchRequest, IFilter, RelationLoad } from "../../models";
+import { Actions, IDataSourceResponse, IFetchRequest, IFilter, ITokenUser, RelationLoad } from "../../models";
 import { QueryDeepPartialEntity } from "typeorm/query-builder/QueryPartialEntity.js";
 import { CompanyEntityBase } from '../../entities/base-entities/company-entity-base';
 import { EntityBase } from "../../entities";
@@ -45,7 +45,7 @@ export interface IRepositoryBase<TEntity extends (CompanyEntityBase | EntityBase
     commitTransaction(): Promise<void>;
 
     // Modification Methods
-    partialUpdate(id: string, partialEntity: QueryDeepPartialEntity<TEntity>): Promise<TEntity>;
+    partialUpdate(id: string, partialEntity: QueryDeepPartialEntity<TEntity>, contextUser?: ITokenUser): Promise<TEntity>;
     invokeDbOperations(entity: TEntity, action: Actions): Promise<TEntity>;
     invokeDbOperationsWithResponse(entity: TEntity, action: Actions): Promise<TResponse>;
     invokeDbOperationsRange(entities: TEntity[], action: Actions): Promise<TEntity[]>;

@@ -8,6 +8,7 @@ import { EmployeeService } from "../bl";
 import { authorize } from "../middlewares/authentication";
 import { payloadValidator, bodyValidator, queryValidator, paramsValidator } from "../middlewares/payload-validator";
 import { uuidParamSchema, createEmployeeSchema, updateEmployeeSchema} from "../models/payload-schemas";
+import { AppResponse } from "../utility";
 
 
 @injectable()
@@ -62,23 +63,38 @@ export class EmployeeController extends ControllerBase {
         let request = req as ExtendedRequest;
 
         if(request.user){
-            res.send(await this.employeeService.add(req.body, request.user))
+            res.send(
+                AppResponse.success(
+                    "Employee created successfully",
+                    await this.employeeService.add(req.body, request.user),
+                )
+            )
         }
     }
 
     private getAll = async (req: FastifyRequest<{Body?: IFetchRequest<IEmployeeRequest>}>, res: FastifyReply) => {
         let request = req as ExtendedRequest;
 
-        res.send(await this.employeeService.get(request.user, req.body))
         if(request.user){
+            res.send(
+                AppResponse.success(
+                    "Fetched all employees successfully",
+                    await this.employeeService.get(request.user, req.body)
+                )
+            );
         }
     }
 
     private getById = async (req: FastifyRequest<{Params: {id: string}}>, res: FastifyReply) => {
         let request = req as ExtendedRequest;
 
-        res.send(await this.employeeService.getById(req.params.id, request.user));
         if(request.user){
+            res.send(
+                AppResponse.success(
+                    "Fetched employee by ID successfully",
+                    await this.employeeService.getById(req.params.id, request.user)
+                )
+            );
         }
     }
 
@@ -86,24 +102,39 @@ export class EmployeeController extends ControllerBase {
         let request = req as ExtendedRequest;
 
         if (request.user) {
-          res.send(await this.employeeService.getOne(request.user, req.body));
-        }    
+          res.send(
+              AppResponse.success(
+                  "Fetched employee by query successfully",
+                  await this.employeeService.getOne(request.user, req.body)
+              )
+          );
+        }
     }
  
     private delete = async (req: FastifyRequest<{Params: {id: string}}>, res: FastifyReply) => {
         let request = req as ExtendedRequest;
 
         if (request.user) {
-          res.send(await this.employeeService.delete(req.params.id, request.user));
-        }       
+          res.send(
+              AppResponse.success(
+                  "Deleted employee successfully",
+                  await this.employeeService.delete(req.params.id, request.user)
+              )
+          );
+        }
     }
 
     private update = async (req: FastifyRequest<{Body: IEmployeeRequest, Params: {id: string}}>, res: FastifyReply) => {
         let request = req as ExtendedRequest;
 
         if (request.user) {
-          res.send(await this.employeeService.update(req.params.id, req.body, request.user));
-        }  
+          res.send(
+              AppResponse.success(
+                  "Updated employee successfully",
+                  await this.employeeService.update(req.params.id, req.body, request.user)
+              )
+          );
+        }
     }
 
 }

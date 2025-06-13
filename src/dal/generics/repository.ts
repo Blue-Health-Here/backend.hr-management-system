@@ -4,7 +4,7 @@ import { QueryDeepPartialEntity } from 'typeorm/query-builder/QueryPartialEntity
 import { IToResponseBase } from '../../entities/abstractions/to-response-base';
 import { CompanyEntityBase } from '../../entities/base-entities/company-entity-base';
 import { EntityBase } from '../../entities/base-entities/entity-base';
-import { Actions, IDataSourceResponse, IFetchRequest, IFilter, PagedRequest, RelationLoad } from '../../models';
+import { Actions, IDataSourceResponse, IFetchRequest, IFilter, ITokenUser, PagedRequest, RelationLoad } from '../../models';
 import { buildQuery, queryOptionsMapper, setSaurceDataResponse } from '../../utility';
 
 @injectable()
@@ -124,13 +124,23 @@ export class GenericRepository<TEntity extends (CompanyEntityBase | EntityBase) 
         return setSaurceDataResponse<TEntity, TResponse>(entities, totalRecords, fetchRequest?.pagedListRequest?.pageSize, fetchRequest?.pagedListRequest?.pageNo);
     }
 
-    async partialUpdate(id: string, partialEntity: QueryDeepPartialEntity<TEntity>): Promise<TEntity> {
+    async partialUpdate(id: string, partialEntity: QueryDeepPartialEntity<TEntity>, contextUser?: ITokenUser): Promise<TEntity> {
         try {
-            const result = await this.repository.update(id, partialEntity);
+
+            // Merge base entity fields if contextUser is provided
+            const updateData = contextUser ? {
+                ...partialEntity,
+                modifiedAt: new Date(),
+                modifiedBy: contextUser.name,
+                modifiedById: contextUser.id
+            } : partialEntity;
+
+            const result = await this.repository.update(id, updateData);
             let updatedRecord = await this.findOneById(id); 
             if(result.affected !== 1 || !updatedRecord) throw new Error(`An error occurred while updating`);
             return updatedRecord;
         } catch (error) {
+            console.error(`Error updating entity with ID ${id}:`, error);
             throw new Error(`An error occurred while updating`);
         }
     }
