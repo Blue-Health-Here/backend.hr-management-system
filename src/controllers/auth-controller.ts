@@ -74,7 +74,7 @@ export class AuthController extends ControllerBase {
             path: '/', // Cookie is accessible across the entire site
             sameSite: 'lax', // Prevent the cookie from being sent with cross-site requests
         });
-        res.send(AppResponse.success('Login successful', rest));
+        res.send(AppResponse.success('Login successful', {...rest, token})); // Include the token in the response
     }
 
     private signUp = async (req: FastifyRequest<{Body: ISignUpRequest}>, res: FastifyReply) => {
@@ -86,7 +86,7 @@ export class AuthController extends ControllerBase {
             path: '/', // Cookie is accessible across the entire site
             sameSite: 'lax', // Prevent the cookie from being sent with cross-site requests
         });
-        res.send(AppResponse.success('Sign up successful', rest));
+        res.send(AppResponse.success('Sign up successful', { ...rest, token })); // Include the token in the response
     }
 
     private getCurrentProfile = async (req: FastifyRequest, res: FastifyReply) => {

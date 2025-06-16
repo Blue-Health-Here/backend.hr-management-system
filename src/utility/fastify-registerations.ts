@@ -10,10 +10,18 @@ import { registerControllers } from "../controllers/register/controllers-registe
 import { AppResponse } from "./app-response"; 
 
 export const fastifyRegisters = async (fastify: FastifyInstance) => {
-    fastify.register(cors, {
-        origin: (origin, callback) => {
-            callback(null, true);
-        }, // Allow all origins
+    // fastify.register(cors, {
+    //     origin: (origin, callback) => {
+      
+    //           callback(null, true);
+    //       }, // Allow all origins
+    // });
+
+    await fastify.register(cors, {
+        origin: true, // Allow all origins dynamically
+        credentials: true,
+        methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+        allowedHeaders: ['Content-Type', 'Authorization']
     });
     registerRepositories(container);
     registerServices(container);
