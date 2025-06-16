@@ -12,9 +12,8 @@ import { AppResponse } from "./app-response";
 export const fastifyRegisters = async (fastify: FastifyInstance) => {
     fastify.register(cors, {
         origin: (origin, callback) => {
-      
-              callback(null, true);
-          }, // Allow all origins
+            callback(null, true);
+        }, // Allow all origins
     });
     registerRepositories(container);
     registerServices(container);

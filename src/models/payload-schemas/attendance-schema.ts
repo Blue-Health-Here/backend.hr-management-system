@@ -15,7 +15,6 @@ export const checkInSchema = z.object({
 
 // Check-out schema
 export const checkOutSchema = z.object({
-    // employeeId: z.string().uuid("Invalid employee ID format"),
     date: dateString, // Accepts date as string
     checkOutTime: timeString, // Accepts time as string in 24-hour format
 });

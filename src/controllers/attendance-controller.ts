@@ -8,6 +8,7 @@ import { AttendanceService } from "../bl";
 import { authorize } from "../middlewares/authentication";
 import { payloadValidator, bodyValidator, queryValidator, paramsValidator } from "../middlewares/payload-validator";
 import { uuidParamSchema, checkInSchema, checkOutSchema, statusSchema} from "../models/payload-schemas";
+import { AppResponse } from "../utility";
 
 
 @injectable()
@@ -61,50 +62,77 @@ export class AttendanceController extends ControllerBase {
         let request = req as ExtendedRequest;
 
         if (request.user) {
-            res.send(await this.attendanceService.status(request.user, req.query));
-        }    
-    }  
+            res.send(
+                AppResponse.success(
+                    "Attendance status fetched successfully",
+                    await this.attendanceService.status(request.user, req.query),
+                )
+            );
+        }
+    }
 
     private checkIn = async (req: FastifyRequest<{Body: ICheckInRequest}>, res: FastifyReply) => {
         let request = req as ExtendedRequest;
 
         if (request.user) {
-            res.send(await this.attendanceService.checkIn(request.user, req.body));
-        }    
+            res.send(
+                AppResponse.success(
+                    "Check-in successful",
+                    await this.attendanceService.checkIn(request.user, req.body)
+                )
+            );
+        }
     }
 
     private checkOut = async (req: FastifyRequest<{Body: ICheckOutRequest}>, res: FastifyReply) => {
         let request = req as ExtendedRequest;
 
         if (request.user) {
-            res.send(await this.attendanceService.checkOut(request.user, req.body));
-        }    
+            res.send(
+                AppResponse.success(
+                    "Check-out successful",
+                    await this.attendanceService.checkOut(request.user, req.body)
+                )
+            );
+        }
     }
-
 
     private getAll = async (req: FastifyRequest<{Body?: IFetchRequest<IAttendanceRequest>}>, res: FastifyReply) => {
         let request = req as ExtendedRequest;
 
-        res.send(await this.attendanceService.get(request.user, req.body))
         if(request.user){
+            res.send(
+                AppResponse.success(
+                    "Attendance records fetched successfully",
+                    await this.attendanceService.get(request.user, req.body)
+                )
+            );
         }
     }
 
     private getById = async (req: FastifyRequest<{Params: {id: string}}>, res: FastifyReply) => {
         let request = req as ExtendedRequest;
 
-        res.send(await this.attendanceService.getById(req.params.id, request.user));
-        if(request.user){
-        }
+        res.send(
+            AppResponse.success(
+                "Attendance record fetched successfully",
+                await this.attendanceService.getById(req.params.id, request.user)
+            )
+        );
     }
 
     private getOneByQuery = async (req: FastifyRequest<{Body: IGetSingleRecordFilter<IAttendanceRequest>}>, res: FastifyReply) => {
         let request = req as ExtendedRequest;
 
         if (request.user) {
-          res.send(await this.attendanceService.getOne(request.user, req.body));
-        }    
+            res.send(
+                AppResponse.success(
+                    "Attendance record fetched successfully",
+                    await this.attendanceService.getOne(request.user, req.body)
+                )
+            );
+        }
     }
-    
+
 
 }
