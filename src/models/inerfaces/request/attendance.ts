@@ -4,8 +4,8 @@ import { AbsenceReasonType, AttendanceStatus, BreakType,  } from "../../enums";
 export interface IAttendanceRequest {
     employeeId: string;
     date: Date;
-    checkInTime?: Date;
-    checkOutTime?: Date;
+    checkInTime?: string;
+    checkOutTime?: string;
     status: AttendanceStatus;
     workingHours?: number;
     lateMinutes?: number;
@@ -16,6 +16,24 @@ export interface IAttendanceRequest {
     absenceReasonId?: string;      // ID of Vacation or PublicHoliday
     absenceReasonType?: AbsenceReasonType;  // Type to identify which entity
 }
+
+export interface ICheckInRequest {
+    // employeeId: string;
+    date: Date;
+    checkInTime: string;
+}
+
+export interface ICheckOutRequest {
+    // employeeId: string;
+    date: Date;
+    checkOutTime: string;
+}
+
+export interface IStatusRequest {
+    date: Date;
+}
+
+
 
 
 export interface IBreakRequest {

@@ -32,7 +32,7 @@ export class UserService extends Service<User, IUserResponse, IUserRequest> {
         let user: User | null = null;
             user = await this.userRepository.firstOrDefault({ 
                 where: [{userName: loginRequest.userName}, { email: ILike(loginRequest.userName) }], 
-                relations: { company: true, role: true }
+                relations: { company: true, role: true, employee: true }
             });
         if (!user) {
             throw new AppError('Invalid username or password', '401');
@@ -58,6 +58,7 @@ export class UserService extends Service<User, IUserResponse, IUserRequest> {
                 id: user.id,
                 name: `${user.firstName} ${user.lastName}`,
                 companyId: user.companyId,
+                employeeId: user.employee?.id ?? undefined,
                 privileges: user.role?.privileges.map((p) => p.code) ?? []
             })
         };
@@ -107,6 +108,7 @@ export class UserService extends Service<User, IUserResponse, IUserRequest> {
                 id: responseUser.id,
                 name: `${responseUser.firstName} ${responseUser.lastName}`,
                 companyId: responseUser.companyId ?? "",
+                employeeId: user.employee?.id ?? undefined,
                 privileges: []
             });
             // // Commit transaction
@@ -420,7 +422,7 @@ export class UserService extends Service<User, IUserResponse, IUserRequest> {
 
         const userEntity = await this.userRepository.getOneByQuery({
             filters: [{ field: 'id', value: id, operator: FilterOperators.And, matchMode: FilterMatchModes.Equal }],
-            relations: { company: true, role: true }
+            relations: { company: true, role: true, employee: true }
         });
 
         if (!userEntity) throw new AppError('User not found', '404');

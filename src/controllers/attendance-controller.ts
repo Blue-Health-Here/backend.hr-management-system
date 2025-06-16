@@ -2,12 +2,12 @@ import { inject, injectable } from "tsyringe";
 import { FastifyReply, FastifyRequest, preHandlerHookHandler, RouteHandlerMethod } from "fastify";
 import { ControllerBase } from "./generics/controller-base";
 import { CommonRoutes } from "../constants/commonRoutes";
-import { IFetchRequest, IFilter, IAttendanceRequest, IAttendanceResponse, IGetSingleRecordFilter} from "../models";
+import { IFetchRequest, IFilter, IAttendanceRequest, IAttendanceResponse, IGetSingleRecordFilter, ICheckOutRequest, ICheckInRequest, IStatusRequest} from "../models";
 import { ExtendedRequest } from "../models/inerfaces/extended-Request";
 import { AttendanceService } from "../bl";
 import { authorize } from "../middlewares/authentication";
 import { payloadValidator, bodyValidator, queryValidator, paramsValidator } from "../middlewares/payload-validator";
-import { uuidParamSchema, createAttendanceSchema, updateAttendanceSchema} from "../models/payload-schemas";
+import { uuidParamSchema, checkInSchema, checkOutSchema, statusSchema} from "../models/payload-schemas";
 
 
 @injectable()
@@ -19,10 +19,23 @@ export class AttendanceController extends ControllerBase {
         this.middleware = authorize as preHandlerHookHandler;
         this.endPoints = [
             {
+                method: 'GET',
+                path: 'status',
+                middlewares: [queryValidator(statusSchema)],
+                handler: this.status as RouteHandlerMethod
+            },
+            {
                 method: 'POST',
-                path: CommonRoutes.create,
-                middlewares: [bodyValidator(createAttendanceSchema)],
-                handler: this.add as RouteHandlerMethod
+                path: 'check-in',  
+                middlewares: [bodyValidator(checkInSchema)],
+                handler: this.checkIn as RouteHandlerMethod
+            },
+
+            {
+                method: 'POST',
+                path: 'check-out',
+                middlewares: [bodyValidator(checkOutSchema)],
+                handler: this.checkOut as RouteHandlerMethod
             },
             {
                 method: 'POST',
@@ -39,34 +52,35 @@ export class AttendanceController extends ControllerBase {
                 method: 'POST',
                 path: CommonRoutes.getOneByQuery,
                 handler: this.getOneByQuery as RouteHandlerMethod
-            },
-            {
-                method: 'PUT',
-                path: `${CommonRoutes.update}/:id`,
-                middlewares: [
-                    paramsValidator(uuidParamSchema),
-                    bodyValidator(updateAttendanceSchema)
-                ],
-                handler: this.update as RouteHandlerMethod
-            },
-            {
-                method: 'DELETE',
-                path: `${CommonRoutes.delete}/:id`,
-                middlewares: [paramsValidator(uuidParamSchema)],
-                handler: this.delete as RouteHandlerMethod
             }
         ];
 
     }
 
-
-    private add = async (req: FastifyRequest<{Body: IAttendanceRequest}>, res: FastifyReply) => {
+    private status = async (req: FastifyRequest<{Querystring: IStatusRequest}>, res: FastifyReply) => {
         let request = req as ExtendedRequest;
 
-        if(request.user){
-            res.send(await this.attendanceService.add(req.body, request.user))
-        }
+        if (request.user) {
+            res.send(await this.attendanceService.status(request.user, req.query));
+        }    
+    }  
+
+    private checkIn = async (req: FastifyRequest<{Body: ICheckInRequest}>, res: FastifyReply) => {
+        let request = req as ExtendedRequest;
+
+        if (request.user) {
+            res.send(await this.attendanceService.checkIn(request.user, req.body));
+        }    
     }
+
+    private checkOut = async (req: FastifyRequest<{Body: ICheckOutRequest}>, res: FastifyReply) => {
+        let request = req as ExtendedRequest;
+
+        if (request.user) {
+            res.send(await this.attendanceService.checkOut(request.user, req.body));
+        }    
+    }
+
 
     private getAll = async (req: FastifyRequest<{Body?: IFetchRequest<IAttendanceRequest>}>, res: FastifyReply) => {
         let request = req as ExtendedRequest;
@@ -91,21 +105,6 @@ export class AttendanceController extends ControllerBase {
           res.send(await this.attendanceService.getOne(request.user, req.body));
         }    
     }
- 
-    private delete = async (req: FastifyRequest<{Params: {id: string}}>, res: FastifyReply) => {
-        let request = req as ExtendedRequest;
-
-        if (request.user) {
-          res.send(await this.attendanceService.delete(req.params.id, request.user));
-        }       
-    }
-
-    private update = async (req: FastifyRequest<{Body: IAttendanceRequest, Params: {id: string}}>, res: FastifyReply) => {
-        let request = req as ExtendedRequest;
-
-        if (request.user) {
-          res.send(await this.attendanceService.update(req.params.id, req.body, request.user));
-        }  
-    }
+    
 
 }

@@ -61,7 +61,7 @@ export class Employee extends CompanyEntityBase implements IToResponseBase<Emplo
     @OneToOne(() => User, { 
         cascade: false, 
         nullable: false,
-        eager: true // Load only when needed
+        eager: false // Load only when needed
     })
     @JoinColumn({ name: 'userId', referencedColumnName: 'id' })
     user?: User;

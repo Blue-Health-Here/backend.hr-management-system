@@ -18,11 +18,13 @@ export class Attendance extends CompanyEntityBase implements IToResponseBase<Att
     @Column({ type: 'date', nullable: false })
     date!: Date;
 
-    @Column({ type: 'timestamp', nullable: true })
-    checkInTime?: Date;
+    // Store only time in 24-hour format (HH:MM:SS)
+    @Column({ type: 'time', nullable: true })
+    checkInTime?: string;
 
-    @Column({ type: 'timestamp', nullable: true })
-    checkOutTime?: Date;
+    // Store only time in 24-hour format (HH:MM:SS)
+    @Column({ type: 'time', nullable: true })
+    checkOutTime?: string;
 
     @Column({ 
         type: 'text', 
@@ -110,9 +112,9 @@ export class Attendance extends CompanyEntityBase implements IToResponseBase<Att
 
     toEntity(requestEntity: IAttendanceRequest, id?: string, contextUser?: ITokenUser): Attendance {
         this.employeeId = requestEntity.employeeId;
-        this.date = requestEntity.date;
-        this.checkInTime = requestEntity.checkInTime;
-        this.checkOutTime = requestEntity.checkOutTime;
+        this.date = requestEntity.date; // Store date string as-is
+        this.checkInTime = requestEntity.checkInTime; // Store time string as-is
+        this.checkOutTime = requestEntity.checkOutTime; // Store time string as-is   
         this.status = requestEntity.status;
         this.workingHours = requestEntity.workingHours;
         this.lateMinutes = requestEntity.lateMinutes || 0;
@@ -127,11 +129,26 @@ export class Attendance extends CompanyEntityBase implements IToResponseBase<Att
         return this;
     }
 
+    // Helper method to parse time string to minutes for calculations
+    private parseTimeToMinutes(timeString: string): number {
+        const [hours, minutes] = timeString.split(':').map(Number);
+        return hours * 60 + minutes;
+    }
+
     // Calculate total working hours excluding breaks
     calculateWorkingHours(): number {
         if (!this.checkInTime || !this.checkOutTime) return 0;
 
-        const totalMinutes = (this.checkOutTime.getTime() - this.checkInTime.getTime()) / (1000 * 60);
+        const checkInMinutes = this.parseTimeToMinutes(this.checkInTime);
+        const checkOutMinutes = this.parseTimeToMinutes(this.checkOutTime);
+        
+        let totalMinutes = checkOutMinutes - checkInMinutes;
+        
+        // Handle overnight shifts (checkout next day)
+        if (totalMinutes < 0) {
+            totalMinutes += 24 * 60; // Add 24 hours worth of minutes
+        }
+
         const breakMinutes = this.totalBreakTime ? this.totalBreakTime * 60 : 0;
         const workingMinutes = Math.max(0, totalMinutes - breakMinutes);
         
@@ -218,5 +235,43 @@ export class Attendance extends CompanyEntityBase implements IToResponseBase<Att
     updateWorkingHours(): void {
         this.totalBreakTime = this.calculateTotalBreakTime();
         this.workingHours = this.calculateWorkingHours();
+    }
+
+    // Helper methods for check-in/check-out operations
+    checkIn(date: Date, time: string): void {
+        this.date = date;
+        this.checkInTime = time;
+        this.status = AttendanceStatus.Present;
+    }
+
+    checkOut(time: string): void {
+        this.checkOutTime = time;
+        this.updateWorkingHours(); // Calculate working hours on checkout
+    }
+
+    // Get full datetime for check-in (combining date + time)
+    getCheckInDateTime(): Date | null {
+        if (!this.checkInTime || !this.date) return null;
+        
+        const [hours, minutes, seconds] = this.checkInTime.split(':').map(Number);
+        const dateTime = new Date(this.date + 'T00:00:00.000Z');
+        dateTime.setUTCHours(hours, minutes, seconds || 0, 0);
+        return dateTime;
+    }
+
+    // Get full datetime for check-out (combining date + time)
+    getCheckOutDateTime(): Date | null {
+        if (!this.checkOutTime || !this.date) return null;
+        
+        const [hours, minutes, seconds] = this.checkOutTime.split(':').map(Number);
+        const dateTime = new Date(this.date + 'T00:00:00.000Z');
+        dateTime.setUTCHours(hours, minutes, seconds || 0, 0);
+        
+        // Handle overnight shifts - if checkout time is before checkin time, add a day
+        if (this.checkInTime && this.parseTimeToMinutes(this.checkOutTime) < this.parseTimeToMinutes(this.checkInTime)) {
+            dateTime.setUTCDate(dateTime.getUTCDate() + 1);
+        }
+        
+        return dateTime;
     }
 }

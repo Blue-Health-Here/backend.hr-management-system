@@ -1,5 +1,6 @@
 import { Gender, UserStatus } from "../../enums";
 import { ICompanyResponse } from "./company";
+import { IEmployeeResponse } from "./employee";
 import { IResponseBase } from "./response-base";
 import { IRoleResponse } from "./role";
 
@@ -22,6 +23,8 @@ export interface IUserResponse extends IResponseBase {
     isGoogleSignup: boolean;
     isEmailVerified?: boolean;
     isPhoneVerified?: boolean;
+    employee?: IEmployeeResponse;
+
 }
 
 export interface IDefaultUserResponse extends IResponseBase {

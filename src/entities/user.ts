@@ -1,10 +1,11 @@
-import { Column, Entity, JoinColumn, ManyToOne } from "typeorm";
+import { Column, Entity, JoinColumn, ManyToOne, OneToOne } from "typeorm";
 import { Gender, IUserRequest, IUserResponse, UserStatus } from "../models";
 import { ITokenUser } from "../models/inerfaces/tokenUser";
 import { IToResponseBase } from "./abstractions/to-response-base";
 import { Role } from "./role";
 import { text } from "stream/consumers";
 import { CompanyEntityBase } from "./base-entities/company-entity-base";
+import { Employee } from "./employee";
 @Entity('User')
 export class User extends CompanyEntityBase implements IToResponseBase<User, IUserResponse> {
 
@@ -66,6 +67,9 @@ export class User extends CompanyEntityBase implements IToResponseBase<User, IUs
     @JoinColumn({ name: 'roleId', referencedColumnName: 'id' })
     role!: Role
 
+    @OneToOne(() => Employee, employee => employee.user, { eager: false, nullable: true })
+    employee?: Employee;
+
     toResponse(entity?: User): IUserResponse {
 
         if(!entity) entity = this;
@@ -88,6 +92,7 @@ export class User extends CompanyEntityBase implements IToResponseBase<User, IUs
             isEmailVerified: entity.isEmailVerified,
             isPhoneVerified: entity.isPhoneVerified,
             role: entity.role ? entity.role.toResponse() : undefined,
+            employee: entity.employee ? entity.employee.toResponse() : undefined
         }    
     }
 
@@ -112,5 +117,7 @@ export class User extends CompanyEntityBase implements IToResponseBase<User, IUs
 
         return this;
     }
+
+
 
 }

@@ -6,8 +6,8 @@ import { AbsenceReasonType } from '../../enums/attendance.enum';
 export interface IAttendanceResponse extends ICompanyResponseBase {
     employeeId: string;
     date: Date;
-    checkInTime?: Date;
-    checkOutTime?: Date;
+    checkInTime?: String;
+    checkOutTime?: String;
     status: AttendanceStatus;
     workingHours?: number;
     totalBreakTime?: number;
