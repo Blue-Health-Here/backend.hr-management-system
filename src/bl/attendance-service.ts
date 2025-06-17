@@ -1,18 +1,65 @@
 import { inject, injectable } from "tsyringe";
-import { AttendanceRepository } from "../dal";
-import { IsNull } from "typeorm";
+import { AttendanceRepository, EmployeeRepository } from "../dal";
+import { IsNull, In } from "typeorm";
 import { Attendance } from "../entities";
-import { Actions, AttendanceStatus, FilterMatchModes, FilterOperators, IAttendanceRequest, IAttendanceResponse, ICheckInRequest, ICheckOutRequest, IDataSourceResponse, IFetchRequest, IStatusRequest, ITokenUser, IAttendanceStatsResponse } from "../models";
+import { Actions, AttendanceStatus, FilterMatchModes, FilterOperators, IAttendanceRequest, IAttendanceResponse, ICheckInRequest, ICheckOutRequest, IDataSourceResponse, IFetchRequest, IStatusRequest, ITokenUser, IAttendanceStatsResponse, EmployeeStatus } from "../models";
 import { Service } from "./generics/service";
 import { AppError } from "../utility/app-error";
 
 @injectable()
 export class AttendanceService extends Service<Attendance, IAttendanceResponse, IAttendanceRequest> {
-    constructor(@inject('AttendanceRepository') private readonly attendanceRepository: AttendanceRepository) {
+    constructor(
+        @inject('AttendanceRepository') private readonly attendanceRepository: AttendanceRepository,
+        @inject('EmployeeRepository') private readonly employeeRepository: EmployeeRepository
+    ) {
         super(attendanceRepository, () => new Attendance())
     }
 
-    async status(contextUser: ITokenUser, request: IStatusRequest): Promise<IAttendanceResponse> {
+    public async attendanceCron (): Promise<void> {
+        console.log("Attendance cron job executed");
+        // Implement your cron logic here
+    }
+
+    private async defaultAttendanceRecord(contextUser: ITokenUser): Promise<IAttendanceResponse[]> {
+        // get all employees of the company 
+        const employees = await this.employeeRepository.getCompanyRecords(contextUser.companyId, {
+            where: {
+                active: true,
+                status: In([EmployeeStatus.Permanent, EmployeeStatus.Contract, EmployeeStatus.Probation])
+            }
+        });
+
+        // Create default attendance records for each employee first check if attendance record already exists for today 
+        const defaultRecords: IAttendanceResponse[] = [];
+        for (const employee of employees) {
+            const existingRecord = await this.attendanceRepository.firstOrDefault({
+                where: {
+                    employeeId: employee.id,
+                    date: new Date(new Date().toISOString().split("T")[0])
+                }
+            });
+
+            if (!existingRecord) {
+                const attendanceEntity = new Attendance().toEntity(
+                    {
+                        employeeId: employee.id,
+                        date: new Date(new Date().toISOString().split("T")[0]),
+                        status: AttendanceStatus.Default
+                    },
+                    undefined,
+                    { ...contextUser }
+                );
+
+                defaultRecords.push(attendanceEntity.toResponse());
+            } else {
+                defaultRecords.push(existingRecord.toResponse());
+            }
+        }
+
+        return defaultRecords;
+    }
+
+    public async status(contextUser: ITokenUser, request: IStatusRequest): Promise<IAttendanceResponse> {
 
         // Try to find existing attendance record
         let attendanceRecord = await this.attendanceRepository.firstOrDefault({
@@ -41,7 +88,7 @@ export class AttendanceService extends Service<Attendance, IAttendanceResponse, 
         return attendanceRecord.toResponse();
     }
 
-    async checkIn(contextUser: ITokenUser, request: ICheckInRequest): Promise<IAttendanceResponse> {
+    public async checkIn(contextUser: ITokenUser, request: ICheckInRequest): Promise<IAttendanceResponse> {
 
         let existingAttendance = await this.attendanceRepository.firstOrDefault({
             where: {
@@ -92,7 +139,7 @@ export class AttendanceService extends Service<Attendance, IAttendanceResponse, 
         return checkInResponse.toResponse();
     }
 
-    async checkOut(contextUser: ITokenUser, request: ICheckOutRequest): Promise<IAttendanceResponse> {
+    public async checkOut(contextUser: ITokenUser, request: ICheckOutRequest): Promise<IAttendanceResponse> {
 
         // Get the date and employee id from the request
         let latestAttendance = await this.attendanceRepository.firstOrDefault({
@@ -124,7 +171,7 @@ export class AttendanceService extends Service<Attendance, IAttendanceResponse, 
         return checkOutResponse.toResponse();
     }
 
-    async get(contextUser?: ITokenUser, fetchRequest?: IFetchRequest<IAttendanceRequest>): Promise<IDataSourceResponse<IAttendanceResponse>> {
+    public async get(contextUser?: ITokenUser, fetchRequest?: IFetchRequest<IAttendanceRequest>): Promise<IDataSourceResponse<IAttendanceResponse>> {
         // first check if contextUser is employeeId exist means only employee can access his own attendance records
         if (contextUser && contextUser.employeeId) {
             // Create or modify fetchRequest to filter by employeeId
@@ -161,7 +208,6 @@ export class AttendanceService extends Service<Attendance, IAttendanceResponse, 
         // If no employeeId in context, return all records (admin/manager access)
         return super.get(contextUser, fetchRequest);
     }
-
 
     public async getStats(contextUser: ITokenUser, fetchRequest: IFetchRequest<IAttendanceRequest>): Promise<IAttendanceStatsResponse> {
 
