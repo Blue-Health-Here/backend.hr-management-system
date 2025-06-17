@@ -193,8 +193,8 @@ export class EmployeeService extends Service<Employee, IEmployeeResponse, IEmplo
 
         let employees = await super.get(contextUser);
         let totalEmployees = employees.data.length;
-        let activeEmployees = employees.data.filter(emp => emp.status === 'active').length;
-        let inactiveEmployees = employees.data.filter(emp => emp.status === 'inactive').length;
+        let activeEmployees = employees.data.filter(emp => emp.active === true).length;
+        let inactiveEmployees = employees.data.filter(emp => emp.active === false).length;
         // last 30 days new joinings
         let newJoinings = employees.data.filter(emp =>
             emp.joiningDate &&

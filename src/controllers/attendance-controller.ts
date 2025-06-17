@@ -31,12 +31,16 @@ export class AttendanceController extends ControllerBase {
                 middlewares: [bodyValidator(checkInSchema)],
                 handler: this.checkIn as RouteHandlerMethod
             },
-
             {
                 method: 'POST',
                 path: 'check-out',
                 middlewares: [bodyValidator(checkOutSchema)],
                 handler: this.checkOut as RouteHandlerMethod
+            },
+            {
+                method: 'POST',
+                path: 'stats',
+                handler: this.stats as RouteHandlerMethod
             },
             {
                 method: 'POST',
@@ -105,6 +109,19 @@ export class AttendanceController extends ControllerBase {
                 AppResponse.success(
                     "Attendance records fetched successfully",
                     await this.attendanceService.get(request.user, req.body)
+                )
+            );
+        }
+    }
+
+    private stats = async (req: FastifyRequest<{Body?: IFetchRequest<IAttendanceRequest>}>, res: FastifyReply) => {
+        let request = req as ExtendedRequest;
+
+        if (request.user) {
+            res.send(
+                AppResponse.success(
+                    "Attendance stats fetched successfully",
+                    await this.attendanceService.getStats(request.user, req.body ?? {})
                 )
             );
         }

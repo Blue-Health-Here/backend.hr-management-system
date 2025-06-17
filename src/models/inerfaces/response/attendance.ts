@@ -38,3 +38,8 @@ export interface IBreakResponse {
     attendance?: IAttendanceResponse;
     employee?: any;
 }
+
+export interface IAttendanceStatsResponse {
+    totalPresent: number;
+    totalAbsent: number;
+}

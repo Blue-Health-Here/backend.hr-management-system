@@ -41,7 +41,8 @@ export class Employee extends CompanyEntityBase implements IToResponseBase<Emplo
     @Column({ 
         type: 'enum', 
         enum: EmployeeStatus,
-        default: EmployeeStatus.Active,
+        default: EmployeeStatus.Probation,
+        nullable: false
     })
     status!: EmployeeStatus;
 
@@ -129,7 +130,7 @@ export class Employee extends CompanyEntityBase implements IToResponseBase<Emplo
 
     // Check if employee is active
     isActive(): boolean {
-        return this.status === EmployeeStatus.Active;
+        return this.active === true
     }
 
     // Check if employee is on probation
