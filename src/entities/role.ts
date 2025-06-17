@@ -53,8 +53,8 @@ export class Role extends EntityBase implements IToResponseBase<Role, IRoleRespo
             ...super.toResponseBase(entity),
             name: entity.name,
             code: entity.code,
-            privileges: entity.privileges.map(prv => prv.toResponse())
-        }    
+            privileges: (this.privileges || []).map(prv => prv.toResponse())
+        };
     }
 
     toEntity = (entityRequest: IRoleRequest, id?: string, contextUser?: ITokenUser): Role => {
