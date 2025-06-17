@@ -2,7 +2,7 @@ import { inject, injectable } from "tsyringe";
 import { AttendanceRepository } from "../dal";
 import { IsNull } from "typeorm";
 import { Attendance } from "../entities";
-import { Actions, AttendanceStatus, IAttendanceRequest, IAttendanceResponse, ICheckInRequest, ICheckOutRequest, IStatusRequest, ITokenUser } from "../models";
+import { Actions, AttendanceStatus, FilterMatchModes, FilterOperators, IAttendanceRequest, IAttendanceResponse, ICheckInRequest, ICheckOutRequest, IDataSourceResponse, IFetchRequest, IStatusRequest, ITokenUser } from "../models";
 import { Service } from "./generics/service";
 import { AppError } from "../utility/app-error";
 
@@ -122,6 +122,45 @@ export class AttendanceService extends Service<Attendance, IAttendanceResponse, 
         );
 
         return checkOutResponse.toResponse();
+    }
+
+
+    async get(contextUser?: ITokenUser, fetchRequest?: IFetchRequest<IAttendanceRequest>): Promise<IDataSourceResponse<IAttendanceResponse>> {
+        // first check if contextUser is employeeId exist means only employee can access his own attendance records
+        if (contextUser && contextUser.employeeId) {
+            // Create or modify fetchRequest to filter by employeeId
+            const modifiedFetchRequest: IFetchRequest<IAttendanceRequest> = {
+                ...fetchRequest,
+                queryOptionsRequest: {
+                    ...fetchRequest?.queryOptionsRequest,
+                    filtersRequest: [
+                        // Keep existing filters if any
+                        ...(fetchRequest?.queryOptionsRequest?.filtersRequest || []),
+                        // Add employeeId filter
+                        {
+                            field: 'employeeId' as keyof IAttendanceRequest,
+                            matchMode: FilterMatchModes.Equal,
+                            operator: FilterOperators.And,
+                            value: contextUser.employeeId
+                        },
+                        // {
+                        //     field: 'date' as keyof IAttendanceRequest,
+                        //     matchMode: FilterMatchModes.Between,
+                        //     operator: FilterOperators.And,
+                        //     rangeValues: {
+                        //         start: new Date("2025-06-15").toISOString().split("T")[0], // current date or start date
+                        //         end: new Date("2025-06-16").toISOString().split("T")[0] // current date or end date
+                        //     }
+                        // }
+                    ]
+                },
+            };
+            
+            return super.get(contextUser, modifiedFetchRequest);
+        }
+
+        // If no employeeId in context, return all records (admin/manager access)
+        return super.get(contextUser, fetchRequest);
     }
 
 }
