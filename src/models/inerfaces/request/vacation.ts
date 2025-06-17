@@ -1,4 +1,4 @@
-import { VacationStatus } from "../../enums";
+import { VacationStatus, VacationProgressStatus } from "../../enums";
 
 // ========================= VACATION REQUEST INTERFACE =========================
 export interface IVacationRequest {
@@ -10,5 +10,6 @@ export interface IVacationRequest {
     approvedBy?: string;
     approvedAt?: Date;
     status?: VacationStatus;
+    progressStatus?: VacationProgressStatus;
     rejectionReason?: string;
 }

@@ -3,7 +3,7 @@ import { CompanyEntityBase } from "./base-entities/company-entity-base";
 import { IToResponseBase } from "./abstractions/to-response-base";
 import { User } from "./user";
 import { LeaveType } from "./leave-type";
-import { ITokenUser, VacationStatus, IVacationRequest, IVacationResponse } from "../models";
+import { ITokenUser, VacationStatus, VacationProgressStatus, IVacationRequest, IVacationResponse } from "../models";
 
 
 
@@ -40,11 +40,20 @@ export class Vacation extends CompanyEntityBase implements IToResponseBase<Vacat
     approvedAt?: Date;
 
     @Column({ 
-        type: 'text', 
+        type: 'enum', 
+        enum: VacationStatus,
         default: VacationStatus.Pending,
         nullable: false 
     })
     status!: VacationStatus;
+
+    @Column({ 
+        type: 'enum', 
+        enum: VacationProgressStatus,
+        default: VacationProgressStatus.InProgress,
+        nullable: true 
+    })
+    progressStatus?: VacationProgressStatus;
 
     @Column({ type: 'text', nullable: true })
     rejectionReason?: string;
@@ -77,6 +86,7 @@ export class Vacation extends CompanyEntityBase implements IToResponseBase<Vacat
             approvedBy: entity.approvedBy,
             approvedAt: entity.approvedAt,
             status: entity.status,
+            progressStatus: entity.progressStatus,
             rejectionReason: entity.rejectionReason,
             requestedByUser: entity.requestedByUser ? entity.requestedByUser.toResponse() : undefined,
             approvedByUser: entity.approvedByUser ? entity.approvedByUser.toResponse() : undefined,
@@ -95,6 +105,7 @@ export class Vacation extends CompanyEntityBase implements IToResponseBase<Vacat
         this.approvedBy = requestEntity.approvedBy;
         this.approvedAt = requestEntity.approvedAt;
         this.status = requestEntity.status || VacationStatus.Pending;
+        this.progressStatus = requestEntity.progressStatus;
         this.rejectionReason = requestEntity.rejectionReason;
         
         if (contextUser) super.toCompanyEntity(contextUser, id);
@@ -159,14 +170,14 @@ export class Vacation extends CompanyEntityBase implements IToResponseBase<Vacat
     // Mark vacation as in progress (when vacation starts)
     markInProgress(): void {
         if (this.status === VacationStatus.Approved) {
-            this.status = VacationStatus.InProgress;
+            this.progressStatus = VacationProgressStatus.InProgress;
         }
     }
 
     // Mark vacation as completed (when vacation ends)
     markCompleted(): void {
-        if (this.status === VacationStatus.InProgress) {
-            this.status = VacationStatus.Completed;
+        if (this.progressStatus === VacationProgressStatus.InProgress) {
+            this.progressStatus = VacationProgressStatus.Completed;
         }
     }
 

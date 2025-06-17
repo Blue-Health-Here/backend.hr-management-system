@@ -1,4 +1,4 @@
-import { VacationStatus } from "../../enums";
+import { VacationProgressStatus, VacationStatus } from "../../enums";
 import { ICompanyResponseBase } from "./response-base";
 
 
@@ -13,6 +13,7 @@ export interface IVacationResponse extends ICompanyResponseBase {
     approvedBy?: string;
     approvedAt?: Date;
     status: VacationStatus;
+    progressStatus?: VacationProgressStatus;
     rejectionReason?: string;
     requestedByUser?: any;    // User who requested
     approvedByUser?: any;     // User who approved

@@ -8,6 +8,7 @@ import { VacationService } from "../bl";
 import { authorize } from "../middlewares/authentication";
 import { payloadValidator, bodyValidator, queryValidator, paramsValidator } from "../middlewares/payload-validator";
 import { uuidParamSchema, createVacationsSchema, updateVacationsSchema} from "../models/payload-schemas";
+import { AppResponse } from "../utility";
 
 
 @injectable()
@@ -62,23 +63,34 @@ export class VacationController extends ControllerBase {
         let request = req as ExtendedRequest;
 
         if(request.user){
-            res.send(await this.vacationService.add(req.body, request.user))
+            res.send(
+                AppResponse.success(
+                    'Vacation created successfully',
+                    await this.vacationService.add(req.body, request.user)
+                )
+            )
         }
     }
 
     private getAll = async (req: FastifyRequest<{Body?: IFetchRequest<IVacationRequest>}>, res: FastifyReply) => {
         let request = req as ExtendedRequest;
 
-        res.send(await this.vacationService.get(request.user, req.body))
         if(request.user){
+            res.send(AppResponse.success(
+                'Vacations fetched successfully',
+                await this.vacationService.get(request.user, req.body)
+            ))  
         }
     }
 
     private getById = async (req: FastifyRequest<{Params: {id: string}}>, res: FastifyReply) => {
         let request = req as ExtendedRequest;
 
-        res.send(await this.vacationService.getById(req.params.id, request.user));
         if(request.user){
+            res.send(AppResponse.success(
+                'Vacation fetched successfully',
+                await this.vacationService.getById(req.params.id, request.user)
+            ))  
         }
     }
 
@@ -86,23 +98,32 @@ export class VacationController extends ControllerBase {
         let request = req as ExtendedRequest;
 
         if (request.user) {
-          res.send(await this.vacationService.getOne(request.user, req.body));
-        }    
+          res.send(AppResponse.success(
+              'Vacation fetched successfully',
+              await this.vacationService.getOne(request.user, req.body)
+          ));
+        }
     }
  
     private delete = async (req: FastifyRequest<{Params: {id: string}}>, res: FastifyReply) => {
         let request = req as ExtendedRequest;
 
         if (request.user) {
-          res.send(await this.vacationService.delete(req.params.id, request.user));
-        }       
+          res.send(AppResponse.success(
+              'Vacation deleted successfully',
+              await this.vacationService.delete(req.params.id, request.user)
+          ));
+        }   
     }
 
     private update = async (req: FastifyRequest<{Body: IVacationRequest, Params: {id: string}}>, res: FastifyReply) => {
         let request = req as ExtendedRequest;
 
         if (request.user) {
-          res.send(await this.vacationService.update(req.params.id, req.body, request.user));
+          res.send(AppResponse.success(
+              'Vacation updated successfully',
+              await this.vacationService.update(req.params.id, req.body, request.user)
+          ));
         }  
     }
 
