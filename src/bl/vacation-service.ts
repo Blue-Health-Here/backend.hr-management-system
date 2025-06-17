@@ -2,7 +2,7 @@ import { inject, injectable } from "tsyringe";
 import { VacationRepository } from "../dal";
 import { LeaveTypeService } from "../bl";
 import { Vacation } from "../entities";
-import { ITokenUser, IVacationRequest, IVacationResponse, VacationStatus } from "../models";
+import { IFetchRequest,  FilterMatchModes, FilterOperators, ITokenUser, IVacationRequest, IVacationResponse, VacationStatus, IDataSourceResponse } from "../models";
 import { Service } from "./generics/service";
 import { AppError } from "../utility/app-error";
 import { Between, LessThanOrEqual, MoreThanOrEqual, Equal, Or, Not, In } from "typeorm";
@@ -85,6 +85,35 @@ export class VacationService extends Service<Vacation, IVacationResponse, IVacat
         }
 
         return super.add(vacation, contextUser);
+    }
+
+    public async get(contextUser?: ITokenUser, fetchRequest?: IFetchRequest<IVacationRequest>): Promise<IDataSourceResponse<IVacationResponse>> {
+        // first check if contextUser is userId exist means only employee can access his own attendance records
+        if (contextUser && contextUser.id) {
+            // Create or modify fetchRequest to filter by userId
+            const modifiedFetchRequest: IFetchRequest<IVacationRequest> = {
+                ...fetchRequest,
+                queryOptionsRequest: {
+                    ...fetchRequest?.queryOptionsRequest,
+                    filtersRequest: [
+                        // Keep existing filters if any
+                        ...(fetchRequest?.queryOptionsRequest?.filtersRequest || []),
+                        // Add requestedBy filter
+                        {
+                            field: 'requestedBy' as keyof IVacationRequest,
+                            matchMode: FilterMatchModes.Equal,
+                            operator: FilterOperators.And,
+                            value: contextUser.id
+                        },
+                    ]
+                },
+            };
+            
+            return super.get(contextUser, modifiedFetchRequest);
+        }
+
+        // If no userId in context, return all records (admin/manager access)
+        return super.get(contextUser, fetchRequest);
     }
 
 }
