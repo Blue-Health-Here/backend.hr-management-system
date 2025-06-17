@@ -73,6 +73,9 @@ export class CompanyService extends Service<Company, ICompanyResponse, ICompanyR
                 name: contextUser?.name ?? "system", 
                 id: contextUser?.id ?? EmptyGuid, 
                 companyId: contextUser?.companyId ?? "", 
+                roleId: contextUser?.roleId ?? "",
+                role: contextUser?.role ?? "",
+                employeeId: contextUser?.employeeId,
                 privileges: contextUser?.privileges ?? [] 
             }
         );
@@ -88,6 +91,9 @@ export class CompanyService extends Service<Company, ICompanyResponse, ICompanyR
                 name: contextUser?.name ?? "system", 
                 id: contextUser?.id ?? EmptyGuid, 
                 companyId: contextUser?.companyId ?? "", 
+                roleId: contextUser?.roleId ?? "",
+                role: contextUser?.role ?? "",
+                employeeId: contextUser?.employeeId,
                 privileges: contextUser?.privileges ?? [] 
             }
         );
@@ -122,6 +128,9 @@ export class CompanyService extends Service<Company, ICompanyResponse, ICompanyR
                 name: contextUser?.name ?? "system", 
                 id: contextUser?.id ?? EmptyGuid, 
                 companyId: contextUser?.companyId ?? "", 
+                roleId: contextUser?.roleId ?? "",
+                role: contextUser?.role ?? "",
+                employeeId: contextUser?.employeeId ?? "",
                 privileges: contextUser?.privileges ?? [] 
             }
         );

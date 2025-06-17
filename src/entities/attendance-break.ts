@@ -1,22 +1,22 @@
 import { Column, Entity, JoinColumn, ManyToOne, OneToMany, Index } from "typeorm";
 import { CompanyEntityBase } from "./base-entities/company-entity-base";
 import { IToResponseBase } from "./abstractions/to-response-base";
-import { Employee } from "./employee";
 import { ITokenUser } from "../models/inerfaces/tokenUser";
 import { Attendance } from './attendance';
 import { BreakType, IBreakRequest, IBreakResponse } from "../models";
+import { User } from "./user";
 
 
 
 @Entity('Break')
-@Index(['employeeId', 'startTime'])
+@Index(['userId', 'startTime'])
 export class AttendanceBreak extends CompanyEntityBase implements IToResponseBase<AttendanceBreak, IBreakResponse> {
 
     @Column({ type: 'uuid', nullable: false })
     attendanceId!: string;
 
     @Column({ type: 'uuid', nullable: false })
-    employeeId!: string;
+    userId!: string;
 
     @Column({ type: 'text', nullable: false })
     breakType!: BreakType;
@@ -44,9 +44,9 @@ export class AttendanceBreak extends CompanyEntityBase implements IToResponseBas
     @JoinColumn({ name: 'attendanceId', referencedColumnName: 'id' })
     attendance!: Attendance;
 
-    @ManyToOne(() => Employee, { nullable: false, eager: false })
-    @JoinColumn({ name: 'employeeId', referencedColumnName: 'id' })
-    employee!: Employee;
+    @ManyToOne(() => User, { nullable: false, eager: false })
+    @JoinColumn({ name: 'userId', referencedColumnName: 'id' })
+    user!: User;
 
     toResponse(entity?: AttendanceBreak): IBreakResponse {
         if (!entity) entity = this;
@@ -54,7 +54,7 @@ export class AttendanceBreak extends CompanyEntityBase implements IToResponseBas
         return {
             ...super.toCompanyResponseBase(entity),
             attendanceId: entity.attendanceId,
-            employeeId: entity.employeeId,
+            userId: entity.userId,
             breakType: entity.breakType,
             startTime: entity.startTime,
             endTime: entity.endTime,
@@ -63,13 +63,13 @@ export class AttendanceBreak extends CompanyEntityBase implements IToResponseBas
             location: entity.location,
             isActive: entity.isActive,
             attendance: entity.attendance ? entity.attendance.toResponse() : undefined,
-            employee: entity.employee ? entity.employee.toResponse() : undefined
+            user: entity.user ? entity.user.toResponse() : undefined 
         };
     }
 
     toEntity(requestEntity: IBreakRequest, id?: string, contextUser?: ITokenUser): AttendanceBreak {
         this.attendanceId = requestEntity.attendanceId;
-        this.employeeId = requestEntity.employeeId;
+        this.userId = requestEntity.userId;
         this.breakType = requestEntity.breakType;
         this.startTime = requestEntity.startTime;
         this.endTime = requestEntity.endTime;

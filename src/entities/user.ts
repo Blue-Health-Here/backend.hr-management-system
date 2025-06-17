@@ -1,4 +1,4 @@
-import { Column, Entity, JoinColumn, ManyToOne, OneToOne } from "typeorm";
+import { Column, Entity, JoinColumn, ManyToOne, OneToOne, Unique } from "typeorm";
 import { Gender, IUserRequest, IUserResponse, UserStatus } from "../models";
 import { ITokenUser } from "../models/inerfaces/tokenUser";
 import { IToResponseBase } from "./abstractions/to-response-base";
@@ -7,9 +7,10 @@ import { text } from "stream/consumers";
 import { CompanyEntityBase } from "./base-entities/company-entity-base";
 import { Employee } from "./employee";
 @Entity('User')
+@Unique(['companyId', 'userName'])
 export class User extends CompanyEntityBase implements IToResponseBase<User, IUserResponse> {
 
-    @Column({ unique: true, type: 'text' })
+    @Column({ type: 'text' })
     userName!: string;
 
     @Column({ type: 'text', unique: true, nullable: false })

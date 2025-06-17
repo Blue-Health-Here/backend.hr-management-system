@@ -126,14 +126,14 @@ export class EmployeeService extends Service<Employee, IEmployeeResponse, IEmplo
 
     // Helper method to validate unique constraints before update
     private async validateUpdateConstraints(
-        employeeId: string, 
+        userId: string, 
         userRequest?: IEmployeeRequest['user'], 
         employeeRequest?: Partial<IEmployeeRequest>
     ): Promise<void> {
         
         // Get current employee to exclude from uniqueness checks
         const currentEmployee = await this.employeeRepository.firstOrDefault({
-            where: { id: employeeId }
+            where: { id: userId }
         });
 
         if (!currentEmployee) {
@@ -178,7 +178,7 @@ export class EmployeeService extends Service<Employee, IEmployeeResponse, IEmplo
                 const existingEmployeeWithCode = await this.employeeRepository.firstOrDefault({
                     where: { 
                         employeeCode: employeeRequest.employeeCode,
-                        id: Not(employeeId) // Exclude current employee
+                        id: Not(userId) // Exclude current employee
                     }
                 });
 

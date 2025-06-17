@@ -58,6 +58,8 @@ export class UserService extends Service<User, IUserResponse, IUserRequest> {
                 id: user.id,
                 name: `${user.firstName} ${user.lastName}`,
                 companyId: user.companyId,
+                roleId: user.roleId,
+                role: user.role?.code ?? '',
                 employeeId: user.employee?.id ?? undefined,
                 privileges: user.role?.privileges.map((p) => p.code) ?? []
             })
@@ -71,7 +73,16 @@ export class UserService extends Service<User, IUserResponse, IUserRequest> {
         if (!user) throw new Error('Invalid username or password',  error);
         
         await this.userRepository.partialUpdate(user.id, {lastLogin: new Date(), googleAccessToken: accessToken, googleRefreshToken: refreshToken});
-        return {...user.toResponse(user), token: signJwt({id: user.id, name: `${user.firstName} ${user.lastName}`,  companyId: user.companyId, privileges: []})};
+        return {...user.toResponse(user), token: signJwt({
+            id: user.id, 
+            name: `${user.firstName} ${user.lastName}`,  
+            companyId: user.companyId,
+            roleId: user.roleId,
+            role: user.role?.code ?? '',
+            employeeId: user.employee?.id ?? undefined,
+            privileges: []
+        }
+        )};
     }
 
     async signUp(signUpRequest: ISignUpRequest): Promise<IUserResponse & { token: string }> {
@@ -108,6 +119,8 @@ export class UserService extends Service<User, IUserResponse, IUserRequest> {
                 id: responseUser.id,
                 name: `${responseUser.firstName} ${responseUser.lastName}`,
                 companyId: responseUser.companyId ?? "",
+                roleId: responseUser.roleId ?? "",
+                role: responseUser.role?.code,
                 employeeId: user.employee?.id ?? undefined,
                 privileges: []
             });
@@ -145,7 +158,13 @@ export class UserService extends Service<User, IUserResponse, IUserRequest> {
         let responseUser = addedUser.toResponse();
         responseUser.company = user.company?.toResponse();
         responseUser.role = user.role?.toResponse();
-        return {...responseUser, token: signJwt({id: responseUser.id, name: `${responseUser.firstName} ${responseUser.lastName}`, companyId: responseUser.companyId ?? "", privileges: []})};
+        return {...responseUser, token: signJwt({
+            id: responseUser.id, 
+            name: `${responseUser.firstName} ${responseUser.lastName}`, 
+            companyId: responseUser.companyId ?? "", 
+            roleId: responseUser.roleId ?? "",
+            role: responseUser.role?.code ?? '',
+            privileges: []})};
     }
 
     async verify(query: IVerifyRequest): Promise<IUserResponse> {
@@ -196,7 +215,7 @@ export class UserService extends Service<User, IUserResponse, IUserRequest> {
                 city: request.city,
             },
             undefined,
-            { name: "System Signup", id: EmptyGuid, companyId: "", privileges: [] }
+            { name: "System Signup", id: EmptyGuid, companyId: "", roleId: "", role: "", privileges: [] }
         );
         company.id = randomUUID();
         return company;
@@ -206,7 +225,7 @@ export class UserService extends Service<User, IUserResponse, IUserRequest> {
         const role = new Role().toEntity(
             { name: "Company Admin", code: "companyAdmin", privilegeIds },
             undefined,
-            { name: "System Signup", id: EmptyGuid, companyId: "", privileges: [] }
+            { name: "System Signup", id: EmptyGuid, companyId: "", roleId: "", role: "", privileges: [] }
         );
         role.id = randomUUID();
         role.companyId = companyId;
@@ -229,7 +248,7 @@ export class UserService extends Service<User, IUserResponse, IUserRequest> {
                 isGoogleSignup: false,
             },
             undefined,
-            { name: "System Signup", id: EmptyGuid, companyId: EmptyGuid, privileges: [] }
+            { name: "System Signup", id: EmptyGuid, companyId: EmptyGuid, roleId: "", role: "", privileges: [] }
         );
 
         user.role = role;
@@ -260,7 +279,7 @@ export class UserService extends Service<User, IUserResponse, IUserRequest> {
                 expiresAt: new Date(Date.now() + 10 * 60 * 1000), // Set expiration time to 10 minutes from now
             },
             undefined,
-            { name: "System Signup", id: EmptyGuid, companyId: "", privileges: [] }
+            { name: "System Signup", id: EmptyGuid, companyId: "", roleId: "", role: "", privileges: [] }
         );
         verification.id = randomUUID();
 
@@ -284,13 +303,13 @@ export class UserService extends Service<User, IUserResponse, IUserRequest> {
                 city: userRequest.city,
               },
               undefined,
-              { name: "system", id: EmptyGuid, companyId: "", privileges: [] }
+              { name: "system", id: EmptyGuid, companyId: "", roleId: "", role: "", privileges: [] }
             );
             company.id = randomUUID();
             let role: Role = new Role().toEntity(
               { name: "Company Admin", code: "companyAdmin", privilegeIds: [] },
               undefined,
-              { name: "system", id: EmptyGuid, companyId: "", privileges: [] }
+              { name: "system", id: EmptyGuid, companyId: "", roleId: "", role: "", privileges: [] }
             );
     
             role.id = randomUUID();
@@ -315,7 +334,7 @@ export class UserService extends Service<User, IUserResponse, IUserRequest> {
                 isGoogleSignup: false,
               },
               undefined,
-              { name: "Admin", id: EmptyGuid, companyId: EmptyGuid, privileges: [] }
+              { name: "Admin", id: EmptyGuid, companyId: EmptyGuid, roleId: "", role: "", privileges: [] }
             );
     
             user.role = role;

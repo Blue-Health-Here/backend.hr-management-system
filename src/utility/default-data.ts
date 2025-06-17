@@ -28,11 +28,11 @@ export const AddDefaultData = async (dataSource: DataSource) => {
                 country: "USA",
                 state: "California",
                 city: "California"
-    }, undefined,{name: "Admin", id: EmptyGuid, companyId:'', privileges: []});
+    }, undefined,{name: "Admin", id: EmptyGuid, companyId:'', role:"", roleId: "", privileges: []});
     company.id = randomUUID();
             let role: Role = new Role().toEntity(
       { name: "Company Admin", code: "companyAdmin", privilegeIds:[] }, undefined,
-      { name: "Admin", id: EmptyGuid, companyId: "", privileges: [] }
+      { name: "Admin", id: EmptyGuid, companyId: "", role:"", roleId: "", privileges: [] }
             );
             role.id = randomUUID();
     role.privileges = [];
@@ -51,7 +51,7 @@ export const AddDefaultData = async (dataSource: DataSource) => {
                 roleId: role.id,
                 isGoogleSignup: false
       }, undefined,
-      { name: "Admin", id: EmptyGuid, companyId: EmptyGuid, privileges: [] }
+      { name: "Admin", id: EmptyGuid, companyId: EmptyGuid, roleId: role.id, role: role.code, privileges: [] }
     );
             
             user.passwordHash = await encrypt("asdf@123");
@@ -145,7 +145,7 @@ export const superAdminSetup = async (dataSource: DataSource) => {
         privilegeIds: [superAdminPrivilege.id],
       },
       undefined,
-      { name: "System", id: EmptyGuid, companyId: "", privileges: [] }
+      { name: "System", id: EmptyGuid, companyId: "", roleId: "", role: "", privileges: [] }
     );
     superAdminRole.id = randomUUID();
     superAdminRole.privileges = [superAdminPrivilege];
@@ -171,7 +171,7 @@ export const superAdminSetup = async (dataSource: DataSource) => {
       country: "System",
       state: "System",
       city: "System",
-    }, undefined, { name: "System", id: EmptyGuid, companyId: '', privileges: [] });
+    }, undefined, { name: "System", id: EmptyGuid, companyId: '', roleId: "", role: "", privileges: [] });
     superAdminCompany.id = randomUUID();
     await companyRepo.save(superAdminCompany);
   }
@@ -190,7 +190,7 @@ export const superAdminSetup = async (dataSource: DataSource) => {
       password: superAdminPassword,
       roleId: superAdminRole.id,
       isGoogleSignup: false
-    }, undefined, { name: "System", id: EmptyGuid, companyId: EmptyGuid, privileges: [] });
+    }, undefined, { name: "System", id: EmptyGuid, companyId: EmptyGuid, roleId: superAdminRole.id, role: superAdminRole.code, privileges: [] });
 
     superAdminUser.passwordHash = await encrypt(superAdminPassword);
     superAdminUser.company = superAdminCompany;

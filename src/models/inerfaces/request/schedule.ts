@@ -3,7 +3,6 @@ import { ScheduleType, WorkType } from "../../enums";
 // Request Interface
 export interface ISchedulerRequest {
     userId: string;
-    employeeId?: string; // Nullable
     scheduleDate: Date;
     startTime: string; // Format: "HH:mm:ss"
     endTime: string; // Format: "HH:mm:ss"

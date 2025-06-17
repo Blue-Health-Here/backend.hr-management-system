@@ -15,11 +15,6 @@ export class AttendanceService extends Service<Attendance, IAttendanceResponse, 
         super(attendanceRepository, () => new Attendance())
     }
 
-    public async attendanceCron (): Promise<void> {
-        console.log("Attendance cron job executed");
-        // Implement your cron logic here
-    }
-
     private async defaultAttendanceRecord(contextUser: ITokenUser): Promise<IAttendanceResponse[]> {
         // get all employees of the company 
         const employees = await this.employeeRepository.getCompanyRecords(contextUser.companyId, {
@@ -34,7 +29,7 @@ export class AttendanceService extends Service<Attendance, IAttendanceResponse, 
         for (const employee of employees) {
             const existingRecord = await this.attendanceRepository.firstOrDefault({
                 where: {
-                    employeeId: employee.id,
+                    userId: employee.userId,
                     date: new Date(new Date().toISOString().split("T")[0])
                 }
             });
@@ -42,7 +37,7 @@ export class AttendanceService extends Service<Attendance, IAttendanceResponse, 
             if (!existingRecord) {
                 const attendanceEntity = new Attendance().toEntity(
                     {
-                        employeeId: employee.id,
+                        userId: employee.userId,
                         date: new Date(new Date().toISOString().split("T")[0]),
                         status: AttendanceStatus.Default
                     },
@@ -64,7 +59,7 @@ export class AttendanceService extends Service<Attendance, IAttendanceResponse, 
         // Try to find existing attendance record
         let attendanceRecord = await this.attendanceRepository.firstOrDefault({
             where: {
-                employeeId: contextUser.employeeId,
+                userId: contextUser.id,
                 date: request.date
             }
         });
@@ -73,7 +68,7 @@ export class AttendanceService extends Service<Attendance, IAttendanceResponse, 
         if (!attendanceRecord) {
             const attendanceEntity = new Attendance().toEntity(
                 {
-                    employeeId: contextUser.employeeId ?? (() => { throw new AppError('Employee ID is required', '400'); })(),
+                    userId: contextUser.id ?? (() => { throw new AppError('User ID is required', '400'); })(),
                     date: request.date,
                     status: AttendanceStatus.Default // Default status, can be 'Absent' or 'Present'
                 },
@@ -92,18 +87,18 @@ export class AttendanceService extends Service<Attendance, IAttendanceResponse, 
 
         let existingAttendance = await this.attendanceRepository.firstOrDefault({
             where: {
-                employeeId: contextUser.employeeId,
+                userId: contextUser.id,
                 date: request.date
             }
         });
 
         if (existingAttendance) {
             if (existingAttendance.checkInTime && !existingAttendance.checkOutTime) {
-                throw new AppError('Employee has already checked in for this date. Please check out first.', '400');
+                throw new AppError('User has already checked in for this date. Please check out first.', '400');
             }
 
             if (existingAttendance.checkInTime && existingAttendance.checkOutTime) {
-                throw new AppError('Employee has already completed attendance for this date (both check-in and check-out done).', '400');
+                throw new AppError('User has already completed attendance for this date (both check-in and check-out done).', '400');
             }
 
             if (!existingAttendance.checkInTime) {
@@ -125,7 +120,7 @@ export class AttendanceService extends Service<Attendance, IAttendanceResponse, 
         // Create new entity WITHOUT setting status manually
         let attendanceEntity = new Attendance().toEntity(
             {
-                employeeId: contextUser.employeeId ?? (() => { throw new AppError('Employee ID is required', '400'); })(),
+                userId: contextUser.id ?? (() => { throw new AppError('User ID is required', '400'); })(),
                 date: request.date,
                 checkInTime: request.checkInTime,
                 status: AttendanceStatus.Present // Default status for new check-in
@@ -144,14 +139,14 @@ export class AttendanceService extends Service<Attendance, IAttendanceResponse, 
         // Get the date and employee id from the request
         let latestAttendance = await this.attendanceRepository.firstOrDefault({
             where: {
-                employeeId: contextUser.employeeId,
+                userId: contextUser.id,
                 date: request.date,
                 checkOutTime: IsNull() // Changed from checkOut to checkOutTime
             }
         });
 
         if (!latestAttendance) {
-            throw new AppError('No check-in record found for the given employee and date.', '404');
+            throw new AppError('No check-in record found for the given user and date.', '404');
         }
 
         // Call entity's checkOut method to update time and calculate working hours
@@ -172,9 +167,9 @@ export class AttendanceService extends Service<Attendance, IAttendanceResponse, 
     }
 
     public async get(contextUser?: ITokenUser, fetchRequest?: IFetchRequest<IAttendanceRequest>): Promise<IDataSourceResponse<IAttendanceResponse>> {
-        // first check if contextUser is employeeId exist means only employee can access his own attendance records
-        if (contextUser && contextUser.employeeId) {
-            // Create or modify fetchRequest to filter by employeeId
+        // first check if contextUser is userId exist means only user can access his own attendance records
+        if (contextUser && contextUser.role === 'employee') {
+            // Create or modify fetchRequest to filter by userId
             const modifiedFetchRequest: IFetchRequest<IAttendanceRequest> = {
                 ...fetchRequest,
                 queryOptionsRequest: {
@@ -182,12 +177,12 @@ export class AttendanceService extends Service<Attendance, IAttendanceResponse, 
                     filtersRequest: [
                         // Keep existing filters if any
                         ...(fetchRequest?.queryOptionsRequest?.filtersRequest || []),
-                        // Add employeeId filter
+                        // Add userId filter
                         {
-                            field: 'employeeId' as keyof IAttendanceRequest,
+                            field: 'userId' as keyof IAttendanceRequest,
                             matchMode: FilterMatchModes.Equal,
                             operator: FilterOperators.And,
-                            value: contextUser.employeeId
+                            value: contextUser.id
                         },
                         // {
                         //     field: 'date' as keyof IAttendanceRequest,
@@ -205,7 +200,7 @@ export class AttendanceService extends Service<Attendance, IAttendanceResponse, 
             return super.get(contextUser, modifiedFetchRequest);
         }
 
-        // If no employeeId in context, return all records (admin/manager access)
+        // If no userId in context, return all records (admin/manager access)
         return super.get(contextUser, fetchRequest);
     }
 

@@ -89,7 +89,7 @@ export class VacationService extends Service<Vacation, IVacationResponse, IVacat
 
     public async get(contextUser?: ITokenUser, fetchRequest?: IFetchRequest<IVacationRequest>): Promise<IDataSourceResponse<IVacationResponse>> {
         // first check if contextUser is userId exist means only employee can access his own attendance records
-        if (contextUser && contextUser.id) {
+        if (contextUser && contextUser.id && contextUser.role === 'employee') {
             // Create or modify fetchRequest to filter by userId
             const modifiedFetchRequest: IFetchRequest<IVacationRequest> = {
                 ...fetchRequest,

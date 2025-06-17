@@ -4,7 +4,6 @@ import { ICompanyResponseBase } from "./response-base";
 // Response Interface
 export interface ISchedulerResponse extends ICompanyResponseBase {
     userId: string;
-    employeeId?: string;
     scheduleDate: Date;
     startTime: string;
     endTime: string;
@@ -14,5 +13,4 @@ export interface ISchedulerResponse extends ICompanyResponseBase {
     notes?: string;
     isPaidOvertime: boolean;
     user: any; // User response object
-    employee?: any; // Employee response object (nullable)
 }

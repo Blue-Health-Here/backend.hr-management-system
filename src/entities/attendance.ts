@@ -1,7 +1,7 @@
 import { Column, Entity, JoinColumn, ManyToOne, OneToMany, Index } from "typeorm";
 import { CompanyEntityBase } from "./base-entities/company-entity-base";
 import { IToResponseBase } from "./abstractions/to-response-base";
-import { Employee } from "./employee";
+import { User } from "./user";
 import { ITokenUser } from "../models/inerfaces/tokenUser";
 import { AttendanceBreak } from "./attendance-break";
 import { AttendanceStatus, IAttendanceRequest, IAttendanceResponse } from "../models";
@@ -9,11 +9,11 @@ import { Vacation } from "./vacation"; // Make sure this import exists
 import { PublicHoliday } from "./public-holiday"; // Make sure this import exists
 
 @Entity('Attendance')
-@Index(['employeeId', 'date'], { unique: true })
+@Index(['userId', 'date'], { unique: true })
 export class Attendance extends CompanyEntityBase implements IToResponseBase<Attendance, IAttendanceResponse> {
     
     @Column({ type: 'uuid', nullable: false })
-    employeeId!: string;
+    userId!: string;
 
     @Column({ type: 'date', nullable: false })
     date!: Date;
@@ -70,9 +70,9 @@ export class Attendance extends CompanyEntityBase implements IToResponseBase<Att
     publicHoliday?: PublicHoliday;
 
     // Relations
-    @ManyToOne(() => Employee, { nullable: false, eager: false })
-    @JoinColumn({ name: 'employeeId', referencedColumnName: 'id' })
-    employee!: Employee;
+    @ManyToOne(() => User, { nullable: false, eager: false })
+    @JoinColumn({ name: 'userId', referencedColumnName: 'id' })
+    user!: User;
 
     @OneToMany(() => AttendanceBreak, (breakRecord) => breakRecord.attendance, { cascade: true })
     breaks!: AttendanceBreak[];
@@ -89,7 +89,7 @@ export class Attendance extends CompanyEntityBase implements IToResponseBase<Att
         
         return {
             ...super.toCompanyResponseBase(entity),
-            employeeId: entity.employeeId,
+            userId: entity.userId,
             date: entity.date,
             checkInTime: entity.checkInTime,
             checkOutTime: entity.checkOutTime,
@@ -102,7 +102,7 @@ export class Attendance extends CompanyEntityBase implements IToResponseBase<Att
             isRemote: entity.isRemote,
             vacationId: entity.vacationId,
             publicHolidayId: entity.publicHolidayId,
-            employee: entity.employee ? entity.employee.toResponse() : undefined,
+            user: entity.user ? entity.user.toResponse() : undefined,
             absenceReason: entity.absenceReason
                 ? (entity.absenceReason.toResponse?.() as any)
                 : undefined,
@@ -111,7 +111,7 @@ export class Attendance extends CompanyEntityBase implements IToResponseBase<Att
     }
 
     toEntity(requestEntity: IAttendanceRequest, id?: string, contextUser?: ITokenUser): Attendance {
-        this.employeeId = requestEntity.employeeId;
+        this.userId = requestEntity.userId;
         this.date = requestEntity.date; // Store date string as-is
         this.checkInTime = requestEntity.checkInTime; // Store time string as-is
         this.checkOutTime = requestEntity.checkOutTime; // Store time string as-is   

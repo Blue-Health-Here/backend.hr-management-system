@@ -8,7 +8,6 @@ const timeString = z.string().regex(/^([01]\d|2[0-3]):[0-5]\d:[0-5]\d$/, "Time m
 
 // Check-in schema
 export const checkInSchema = z.object({
-    // employeeId: z.string().uuid("Invalid employee ID format"),
     date: dateString, // Accepts date as string
     checkInTime: timeString, // Accepts time as string in 24-hour format
 });

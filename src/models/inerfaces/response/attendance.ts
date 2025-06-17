@@ -1,10 +1,12 @@
 import { AttendanceStatus, BreakType, EmployeeStatus } from "../../enums";
 import { ICompanyResponseBase } from "./response-base";
 import { AbsenceReasonType } from '../../enums/attendance.enum';
+import { User } from '../../../entities/user';
+import { IUserResponse } from "./user";
 
 
 export interface IAttendanceResponse extends ICompanyResponseBase {
-    employeeId: string;
+    userId: string;
     date: Date;
     checkInTime?: String;
     checkOutTime?: String;
@@ -18,7 +20,7 @@ export interface IAttendanceResponse extends ICompanyResponseBase {
     isRemote: boolean;
     vacationId?: string;
     publicHolidayId?: string;
-    employee?: any;
+    user?: IUserResponse;
     // Dynamic absenceReason object based on type
     absenceReason?: AbsenceReasonType;  // Will be Vacation or PublicHoliday based on type
     breaks?: IBreakResponse[];
@@ -27,7 +29,7 @@ export interface IAttendanceResponse extends ICompanyResponseBase {
 
 export interface IBreakResponse {
     attendanceId: string;
-    employeeId: string;
+    userId: string;
     breakType: BreakType;
     startTime: Date;
     endTime?: Date;
@@ -36,7 +38,7 @@ export interface IBreakResponse {
     location?: string;
     isActive: boolean;
     attendance?: IAttendanceResponse;
-    employee?: any;
+    user?: IUserResponse
 }
 
 export interface IAttendanceStatsResponse {

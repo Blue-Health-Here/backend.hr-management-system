@@ -9,16 +9,13 @@ import { Employee } from "./employee";
 
 @Entity('UserShift')
 // @Index('idx_user_shift_assignments', ['companyId', 'userId', 'effectiveFrom', 'effectiveTo'])
-// @Index('idx_employee_shift_assignments', ['companyId', 'employeeId', 'effectiveFrom', 'effectiveTo'])
+// @Index('idx_employee_shift_assignments', ['companyId', 'effectiveFrom', 'effectiveTo'])
 // @Index('idx_shift_assignments', ['companyId', 'shiftId'])
 // @Index('idx_active_user_shifts', ['companyId', 'userId', 'effectiveFrom'])
 export class UserShift extends CompanyEntityBase implements IToResponseBase<UserShift, IUserShiftResponse> {
     
     @Column({ type: 'uuid', nullable: false })
     userId!: string;
-
-    @Column({ type: 'uuid', nullable: true })
-    employeeId?: string;
 
     @Column({ type: 'uuid', nullable: false })
     shiftId!: string;
@@ -33,10 +30,6 @@ export class UserShift extends CompanyEntityBase implements IToResponseBase<User
     @JoinColumn({ name: 'userId', referencedColumnName: 'id' })
     user!: User;
 
-    @ManyToOne(() => Employee, { nullable: false, eager: true, onDelete: 'CASCADE' })
-    @JoinColumn({ name: 'employeeId', referencedColumnName: 'id' })
-    employee?: Employee;
-
     @ManyToOne(() => Shift, { nullable: false, eager: true, onDelete: 'CASCADE' })
     @JoinColumn({ name: 'shiftId', referencedColumnName: 'id' })
     shift!: Shift;
@@ -47,31 +40,24 @@ export class UserShift extends CompanyEntityBase implements IToResponseBase<User
         return {
             ...super.toCompanyResponseBase(entity),
             userId: entity.userId,
-            employeeId: entity.employeeId ? entity.employeeId : undefined,
             shiftId: entity.shiftId,
             effectiveFrom: entity.effectiveFrom,
             effectiveTo: entity.effectiveTo,
             user: entity.user.toResponse(entity.user),
-            employee: entity.employee ? entity.employee.toResponse(entity.employee) : undefined,
             shift: entity.shift.toResponse(entity.shift)
         }
     }
 
     toEntity = (entityRequest: IUserShiftRequest, id?: string, contextUser?: ITokenUser): UserShift => {
         this.userId = entityRequest.userId;
-        this.employeeId = entityRequest.employeeId;
         this.shiftId = entityRequest.shiftId;
         this.effectiveFrom = entityRequest.effectiveFrom;
         this.effectiveTo = entityRequest.effectiveTo;
 
-        // Set user, employee and shift objects
+        // Set user and shift objects
         let user = new User();
         user.id = entityRequest.userId;
         this.user = user;
-
-        let employee = new Employee();
-        employee.id = entityRequest.employeeId;
-        this.employee = employee;
 
         let shift = new Shift();
         shift.id = entityRequest.shiftId;

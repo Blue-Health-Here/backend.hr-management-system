@@ -17,9 +17,6 @@ export class Scheduler extends CompanyEntityBase implements IToResponseBase<Sche
     @Column({ type: 'uuid', nullable: false })
     userId!: string;
 
-    @Column({ type: 'uuid', nullable: true })
-    employeeId?: string;
-
     @Column({ type: 'date', nullable: false })
     scheduleDate!: Date;
 
@@ -47,10 +44,6 @@ export class Scheduler extends CompanyEntityBase implements IToResponseBase<Sche
     @ManyToOne(() => User, { nullable: false, eager: true, onDelete: 'CASCADE' })
     @JoinColumn({ name: 'userId', referencedColumnName: 'id' })
     user!: User;
-
-    @ManyToOne(() => Employee, { nullable: true, eager: true, onDelete: 'CASCADE' })
-    @JoinColumn({ name: 'employeeId', referencedColumnName: 'id' })
-    employee?: Employee;
     
     toResponse(entity?: Scheduler): ISchedulerResponse {
         if(!entity) entity = this;
@@ -58,7 +51,6 @@ export class Scheduler extends CompanyEntityBase implements IToResponseBase<Sche
         return {
             ...super.toCompanyResponseBase(entity),
             userId: entity.userId,
-            employeeId: entity.employeeId,
             scheduleDate: entity.scheduleDate,
             startTime: entity.startTime,
             endTime: entity.endTime,
@@ -68,13 +60,11 @@ export class Scheduler extends CompanyEntityBase implements IToResponseBase<Sche
             notes: entity.notes,
             isPaidOvertime: entity.isPaidOvertime,
             user: entity.user.toResponse(entity.user),
-            employee: entity.employee?.toResponse(entity.employee)
         }
     }
 
     toEntity = (entityRequest: ISchedulerRequest, id?: string, contextUser?: ITokenUser): Scheduler => {
         this.userId = entityRequest.userId;
-        this.employeeId = entityRequest.employeeId;
         this.scheduleDate = entityRequest.scheduleDate;
         this.startTime = entityRequest.startTime;
         this.endTime = entityRequest.endTime;
@@ -88,13 +78,6 @@ export class Scheduler extends CompanyEntityBase implements IToResponseBase<Sche
         let user = new User();
         user.id = entityRequest.userId;
         this.user = user;
-
-        // Set employee object if provided
-        if (entityRequest.employeeId) {
-            let employee = new Employee();
-            employee.id = entityRequest.employeeId;
-            this.employee = employee;
-        }
 
         if(contextUser) super.toCompanyEntity(contextUser, id);
         
