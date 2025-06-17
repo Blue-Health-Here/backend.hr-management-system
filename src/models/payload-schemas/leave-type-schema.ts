@@ -73,23 +73,6 @@ export const updateLeaveTypeSchema = z.object({
     status: z.nativeEnum(LeaveTypeStatus).optional()
 });
 
-// // Additional schemas for specific use cases
-// export const leaveTypeListSchema = z.object({
-//     page: z.number().int().min(1).default(1),
-//     limit: z.number().int().min(1).max(100).default(10),
-//     search: z.string().trim().optional(),
-//     departmentId: z.number().int().positive().optional(),
-//     status: z.nativeEnum(LeaveTypeStatus).optional(),
-//     genderSpecific: z.nativeEnum(GenderSpecific).optional(),
-//     sortBy: z.enum(['name', 'code', 'createdAt', 'updatedAt']).default('name'),
-//     sortOrder: z.enum(['ASC', 'DESC']).default('ASC')
-// });
-
 export const bulkCreateLeaveTypeSchema = z.object({
     leaveTypes: z.array(createLeaveTypeSchema).min(1, "At least one leave type is required")
 });
-
-// // Type inference from schemas
-// export type CreateLeaveTypeInput = z.infer<typeof createLeaveTypeSchema>;
-// export type UpdateLeaveTypeInput = z.infer<typeof updateLeaveTypeSchema>;
-// export type BulkCreateLeaveTypeInput = z.infer<typeof bulkCreateLeaveTypeSchema>;
