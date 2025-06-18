@@ -2,7 +2,7 @@ import { inject, injectable } from "tsyringe";
 import { VacationRepository } from "../dal";
 import { LeaveTypeService } from "../bl";
 import { Vacation } from "../entities";
-import { IFetchRequest,  FilterMatchModes, FilterOperators, ITokenUser, IVacationRequest, IVacationResponse, VacationStatus, IDataSourceResponse } from "../models";
+import { IFetchRequest,  FilterMatchModes, FilterOperators, IVacationStatusRequest, ITokenUser, IVacationRequest, IVacationResponse, VacationStatus, IDataSourceResponse } from "../models";
 import { Service } from "./generics/service";
 import { AppError } from "../utility/app-error";
 import { Between, LessThanOrEqual, MoreThanOrEqual, Equal, Or, Not, In } from "typeorm";
@@ -114,6 +114,36 @@ export class VacationService extends Service<Vacation, IVacationResponse, IVacat
 
         // If no userId in context, return all records (admin/manager access)
         return super.get(contextUser, fetchRequest);
+    }
+
+    // Update Status of Vacation
+    public async updateStatus(id: string, status: IVacationStatusRequest, contextUser: ITokenUser, rejectionReason?: string): Promise<IVacationResponse> {
+        // Validate if vacation exists
+        const vacation = await super.getById(id, contextUser);
+        if (!vacation) {
+            throw new AppError(`Vacation with ID ${id} does not exist`, '404');
+        }
+
+        // Check if the user has permission to update the status
+        if (contextUser.role !== 'companyAdmin' && contextUser.role !== 'manager') {
+            throw new AppError('You do not have permission to update the status of this vacation', '403');
+        }
+
+        // first check if status not equls to pending
+        if (vacation.status !== VacationStatus.Pending) {
+            throw new AppError(`You have already ${vacation.status} this vacation`, '409');
+        }
+
+        // Update the status and rejection reason if applicable
+        vacation.status = status.status;
+        if (status.status === VacationStatus.Rejected) {
+            vacation.rejectionReason = status.rejectionReason || rejectionReason;
+        }
+        vacation.approvedBy = contextUser.id;
+        vacation.approvedAt = new Date();
+
+
+        return super.update(id, vacation, contextUser);
     }
 
 }

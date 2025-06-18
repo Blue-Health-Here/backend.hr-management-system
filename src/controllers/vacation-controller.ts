@@ -2,12 +2,12 @@ import { inject, injectable } from "tsyringe";
 import { FastifyReply, FastifyRequest, preHandlerHookHandler, RouteHandlerMethod } from "fastify";
 import { ControllerBase } from "./generics/controller-base";
 import { CommonRoutes } from "../constants/commonRoutes";
-import { IFetchRequest, IFilter, IVacationRequest, IVacationResponse, IGetSingleRecordFilter} from "../models";
+import { IFetchRequest, IFilter, IVacationRequest, IVacationStatusRequest, IVacationResponse, IGetSingleRecordFilter} from "../models";
 import { ExtendedRequest } from "../models/inerfaces/extended-Request";
 import { VacationService } from "../bl";
 import { authorize } from "../middlewares/authentication";
 import { payloadValidator, bodyValidator, queryValidator, paramsValidator } from "../middlewares/payload-validator";
-import { uuidParamSchema, createVacationsSchema, updateVacationsSchema} from "../models/payload-schemas";
+import { uuidParamSchema, createVacationsSchema, updateStatusVacationsSchema, updateVacationsSchema} from "../models/payload-schemas";
 import { AppResponse } from "../utility";
 
 
@@ -49,6 +49,15 @@ export class VacationController extends ControllerBase {
                 handler: this.update as RouteHandlerMethod
             },
             {
+                method: 'PUT',
+                path: `${CommonRoutes.update}/status/:id`,
+                middlewares: [
+                    paramsValidator(uuidParamSchema),
+                    bodyValidator(updateStatusVacationsSchema)
+                ],
+                handler: this.updateStatus as RouteHandlerMethod
+            },
+            {
                 method: 'DELETE',
                 path: `${CommonRoutes.delete}/:id`,
                 middlewares: [paramsValidator(uuidParamSchema)],
@@ -74,6 +83,7 @@ export class VacationController extends ControllerBase {
 
     private getAll = async (req: FastifyRequest<{Body?: IFetchRequest<IVacationRequest>}>, res: FastifyReply) => {
         let request = req as ExtendedRequest;
+        console.log('Fetching vacations with request:', req?.body?.queryOptionsRequest?.filtersRequest);
 
         if(request.user){
             res.send(AppResponse.success(
@@ -114,6 +124,17 @@ export class VacationController extends ControllerBase {
               await this.vacationService.delete(req.params.id, request.user)
           ));
         }   
+    }
+
+    private updateStatus = async (req: FastifyRequest<{Body: IVacationStatusRequest, Params: {id: string}}>, res: FastifyReply) => {
+        let request = req as ExtendedRequest;
+
+        if (request.user) {
+          res.send(AppResponse.success(
+              'Vacation Status updated successfully',
+              await this.vacationService.updateStatus(req.params.id, req.body, request.user)
+          ));
+        }  
     }
 
     private update = async (req: FastifyRequest<{Body: IVacationRequest, Params: {id: string}}>, res: FastifyReply) => {

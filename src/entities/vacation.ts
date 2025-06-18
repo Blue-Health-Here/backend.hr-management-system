@@ -50,8 +50,8 @@ export class Vacation extends CompanyEntityBase implements IToResponseBase<Vacat
     @Column({ 
         type: 'enum', 
         enum: VacationProgressStatus,
-        default: VacationProgressStatus.InProgress,
-        nullable: true 
+        default: null, // Default to null for optional field
+        nullable: true
     })
     progressStatus?: VacationProgressStatus;
 

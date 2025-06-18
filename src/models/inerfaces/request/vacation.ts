@@ -13,3 +13,8 @@ export interface IVacationRequest {
     progressStatus?: VacationProgressStatus;
     rejectionReason?: string;
 }
+
+export interface IVacationStatusRequest {
+    status: VacationStatus;
+    rejectionReason?: string;
+}

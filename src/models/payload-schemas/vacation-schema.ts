@@ -1,4 +1,5 @@
 import z from "zod";
+import { VacationStatus } from "../enums"; // Adjust import path as needed
 
 
 // Date string: YYYY-MM-DD
@@ -26,3 +27,15 @@ export const updateVacationsSchema = z.object({
         data.fromDate <= data.toDate,
     { message: "fromDate must be before or equal to toDate", path: ["fromDate"] }
 );
+
+export const updateStatusVacationsSchema = z.object({
+  status: z
+    .string()
+    .refine(
+      (val) => Object.values(VacationStatus).includes(val as VacationStatus),
+      {
+        message: `Invalid status. Must be one of: ${Object.values(VacationStatus).join(', ')}`,
+      }
+    ),
+  rejectionReason: z.string().min(3).max(255).optional(),
+});
