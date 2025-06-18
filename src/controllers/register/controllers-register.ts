@@ -15,8 +15,10 @@ import { ShiftController } from '../shift-controller';
 import { EmployeeController } from '../employee-controller';
 import { AttendanceController } from '../attendance-controller';
 import { VacationController } from '../vacation-controller';
+import { HookController } from '../hook-controller';
 
 export const registerControllers = (container: DependencyContainer) => {
+    container.register<HookController>('HookController', HookController);
     container.register<CompanyController>('CompanyController', CompanyController);
     container.register<CountryController>('CountryController', CountryController);
     container.register<PrivilegeController>('PrivilegeController', PrivilegeController);
@@ -34,6 +36,7 @@ export const registerControllers = (container: DependencyContainer) => {
     container.register<VacationController>('VacationController', VacationController);
 
     return {
+        hookController: container.resolve(HookController),
         companyController: container.resolve(CompanyController),
         countryController: container.resolve(CountryController),
         userController: container.resolve(UserController),
