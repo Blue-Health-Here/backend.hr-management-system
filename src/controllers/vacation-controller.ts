@@ -62,7 +62,12 @@ export class VacationController extends ControllerBase {
                 path: `${CommonRoutes.delete}/:id`,
                 middlewares: [paramsValidator(uuidParamSchema)],
                 handler: this.delete as RouteHandlerMethod
-            }
+            },
+            {
+                method: 'GET',
+                path: 'leave-balance',
+                handler: this.leaveBalance as RouteHandlerMethod
+            },
         ];
 
     }
@@ -146,6 +151,17 @@ export class VacationController extends ControllerBase {
               await this.vacationService.update(req.params.id, req.body, request.user)
           ));
         }  
+    }
+
+    private leaveBalance = async (req: FastifyRequest, res: FastifyReply) => {
+        let request = req as ExtendedRequest;
+
+        if (request.user) {
+            res.send(AppResponse.success(
+                'Leave balance fetched successfully',
+                await this.vacationService.leaveBalance(request.user )
+            ));
+        }
     }
 
 }

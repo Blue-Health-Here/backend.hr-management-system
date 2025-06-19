@@ -139,11 +139,62 @@ export class VacationService extends Service<Vacation, IVacationResponse, IVacat
         if (status.status === VacationStatus.Rejected) {
             vacation.rejectionReason = status.rejectionReason || rejectionReason;
         }
-        vacation.approvedBy = contextUser.id;
-        vacation.approvedAt = new Date();
 
+        if (status.status === VacationStatus.Approved) {
+            vacation.approvedBy = contextUser.id;
+            vacation.approvedAt = new Date();
+        }
 
         return super.update(id, vacation, contextUser);
+    }
+
+
+    public async leaveBalance(contextUser: ITokenUser): Promise<{ leaveBalances: Array<{ leaveTypeId: string; leaveTypeName: string; totalLeaves: number; usedLeaves: number; remainingLeaves: number; }> }> {
+        // 1. Fetch all leave types for the company
+        const leaveTypes = await this.leaveTypeService.get(contextUser);
+
+        // 2. Fetch all vacations for the user
+        const fetchRequest: IFetchRequest<IVacationRequest> = {
+            queryOptionsRequest: {
+                filtersRequest: [
+                    {
+                        field: 'requestedBy' as keyof IVacationRequest,
+                        matchMode: FilterMatchModes.Equal,
+                        operator: FilterOperators.And,
+                        value: contextUser.id
+                    }
+                ]
+            }
+        };
+        const userVacationsResponse = await super.get(contextUser, fetchRequest);
+        const userVacations = userVacationsResponse.data || [];
+
+        // 3. Group by typeId and sum totalDays
+        const usedDaysByType: { [typeId: string]: number } = {};
+        userVacations.forEach((vacation: any) => {
+            const typeId = vacation.typeId;
+            const days = Number(vacation.totalDays) || 0;
+            usedDaysByType[typeId] = (usedDaysByType[typeId] || 0) + days;
+        });
+
+        // 4. Build the response: for each leave type, show total, used, and remaining
+        const leaveBalances = (leaveTypes.data || []).map((leaveType: any) => {
+            const used = usedDaysByType[leaveType.id] || 0;
+            const total = leaveType.maxDaysPerYear || 0; // Adjust property if needed
+            const remaining = total - used;
+            return {
+                leaveTypeId: leaveType.id,
+                leaveTypeName: leaveType.name,
+                totalLeaves: total,
+                usedLeaves: used,
+                remainingLeaves: remaining < 0 ? 0 : remaining
+            };
+        });
+
+        // 5. Return only leaveBalances
+        return {
+            leaveBalances
+        };
     }
 
 }

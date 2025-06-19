@@ -161,14 +161,27 @@ export class AttendanceService extends Service<Attendance, IAttendanceResponse, 
         let latestAttendance = await this.attendanceRepository.firstOrDefault({
             where: {
                 userId: contextUser.id,
-                date: request.date,
-                checkOutTime: IsNull(), // Changed from checkOut to checkOutTime
-                presentStatus: PresentStatus.CheckIn // Ensure we are checking out after check-in
+                date: request.date
             }
         });
 
         if (!latestAttendance) {
             throw new AppError('No check-in record found for the given user and date.', '404');
+        }
+
+        // If attendance record does not exist for the user on the given date, throw an error user not checked in
+        if (!latestAttendance || !latestAttendance.checkInTime) {
+            throw new AppError('User has not checked in for this date. Please check in first.', '400');
+        }
+
+        // If check-out time is already set, throw an error
+        if (latestAttendance.checkOutTime && latestAttendance.presentStatus) {
+            throw new AppError('User has already checked out for this date.', '400');
+        }
+
+        // If check-in time is set but present status is Break, throw an error
+        if (latestAttendance.checkInTime && latestAttendance.presentStatus === PresentStatus.OnBreak){
+            throw new AppError('User is currently on break and cannot check out.', '400');
         }
 
         // Call entity's checkOut method to update time and calculate working hours
@@ -232,13 +245,14 @@ export class AttendanceService extends Service<Attendance, IAttendanceResponse, 
         return super.get(contextUser, fetchRequest);
     }
 
+    // pending work 
     public async getStats(contextUser: ITokenUser, fetchRequest: IFetchRequest<IAttendanceRequest>): Promise<IAttendanceStatsResponse> {
 
         let attendance = await super.get(contextUser, fetchRequest);
 
         return {
             totalPresent: attendance.data.filter(a => a.status === AttendanceStatus.Present).length,
-            totalAbsent: attendance.data.filter(a => a.status === AttendanceStatus.Absent).length
+            totalAbsent: attendance.data.filter(a => a.status === AttendanceStatus.Absent || a.status === AttendanceStatus.Default).length
         };
     }
 
