@@ -1,4 +1,4 @@
-import { AbsenceReasonType, AttendanceStatus, BreakType,  } from "../../enums";
+import { AbsenceReasonType, AttendanceStatus, BreakType, PresentStatus,  } from "../../enums";
 
 
 export interface IAttendanceRequest {
@@ -7,6 +7,7 @@ export interface IAttendanceRequest {
     checkInTime?: string;
     checkOutTime?: string;
     status: AttendanceStatus;
+    presentStatus?: PresentStatus;
     workingHours?: number;
     lateMinutes?: number;
     notes?: string;

@@ -4,7 +4,7 @@ import { IToResponseBase } from "./abstractions/to-response-base";
 import { User } from "./user";
 import { ITokenUser } from "../models/inerfaces/tokenUser";
 import { AttendanceBreak } from "./attendance-break";
-import { AttendanceStatus, IAttendanceRequest, IAttendanceResponse } from "../models";
+import { AttendanceStatus, IAttendanceRequest, IAttendanceResponse, PresentStatus } from "../models";
 import { Vacation } from "./vacation"; // Make sure this import exists
 import { PublicHoliday } from "./public-holiday"; // Make sure this import exists
 
@@ -27,11 +27,20 @@ export class Attendance extends CompanyEntityBase implements IToResponseBase<Att
     checkOutTime?: string;
 
     @Column({ 
-        type: 'text', 
-        default: AttendanceStatus.Absent,
+        type: 'enum', 
+        enum: AttendanceStatus,
+        default: AttendanceStatus.Default,
         nullable: false 
     })
     status!: AttendanceStatus;
+
+    @Column({ 
+        type: 'enum', 
+        enum: PresentStatus,
+        nullable: true, 
+    })
+    presentStatus?: PresentStatus;
+
 
     @Column({ type: 'decimal', precision: 5, scale: 2, nullable: true })
     workingHours?: number;
@@ -94,6 +103,7 @@ export class Attendance extends CompanyEntityBase implements IToResponseBase<Att
             checkInTime: entity.checkInTime,
             checkOutTime: entity.checkOutTime,
             status: entity.status,
+            presentStatus: entity.presentStatus,
             workingHours: entity.workingHours,
             totalBreakTime: entity.totalBreakTime,
             lateMinutes: entity.lateMinutes,
@@ -116,6 +126,7 @@ export class Attendance extends CompanyEntityBase implements IToResponseBase<Att
         this.checkInTime = requestEntity.checkInTime; // Store time string as-is
         this.checkOutTime = requestEntity.checkOutTime; // Store time string as-is   
         this.status = requestEntity.status;
+        this.presentStatus = requestEntity.presentStatus || undefined;
         this.workingHours = requestEntity.workingHours;
         this.lateMinutes = requestEntity.lateMinutes || 0;
         this.notes = requestEntity.notes;
@@ -242,10 +253,12 @@ export class Attendance extends CompanyEntityBase implements IToResponseBase<Att
         this.date = date;
         this.checkInTime = time;
         this.status = AttendanceStatus.Present;
+        this.presentStatus = PresentStatus.CheckIn;
     }
 
     checkOut(time: string): void {
         this.checkOutTime = time;
+        this.presentStatus = PresentStatus.CheckOut;
         this.updateWorkingHours(); // Calculate working hours on checkout
     }
 

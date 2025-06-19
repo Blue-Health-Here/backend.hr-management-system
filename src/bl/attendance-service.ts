@@ -2,7 +2,7 @@ import { inject, injectable } from "tsyringe";
 import { AttendanceRepository, EmployeeRepository } from "../dal";
 import { IsNull, In } from "typeorm";
 import { Attendance } from "../entities";
-import { Actions, AttendanceStatus, FilterMatchModes, FilterOperators, IAttendanceRequest, IAttendanceResponse, ICheckInRequest, ICheckOutRequest, IDataSourceResponse, IFetchRequest, IStatusRequest, ITokenUser, IAttendanceStatsResponse, EmployeeStatus } from "../models";
+import { Actions, AttendanceStatus, FilterMatchModes, FilterOperators, IAttendanceRequest, IAttendanceResponse, ICheckInRequest, ICheckOutRequest, IDataSourceResponse, IFetchRequest, IStatusRequest, ITokenUser, IAttendanceStatsResponse, EmployeeStatus, PresentStatus } from "../models";
 import { Service } from "./generics/service";
 import { AppError } from "../utility/app-error";
 
@@ -15,8 +15,8 @@ export class AttendanceService extends Service<Attendance, IAttendanceResponse, 
         super(attendanceRepository, () => new Attendance())
     }
 
-    private async defaultAttendanceRecord(contextUser: ITokenUser): Promise<IAttendanceResponse[]> {
-        // get all employees of the company 
+    private async defaultAttendanceRecord(contextUser: ITokenUser): Promise<{ created: number; existing: number }> {
+        // Get all employees of the company 
         const employees = await this.employeeRepository.getCompanyRecords(contextUser.companyId, {
             where: {
                 active: true,
@@ -24,34 +24,55 @@ export class AttendanceService extends Service<Attendance, IAttendanceResponse, 
             }
         });
 
-        // Create default attendance records for each employee first check if attendance record already exists for today 
-        const defaultRecords: IAttendanceResponse[] = [];
-        for (const employee of employees) {
-            const existingRecord = await this.attendanceRepository.firstOrDefault({
-                where: {
-                    userId: employee.userId,
-                    date: new Date(new Date().toISOString().split("T")[0])
-                }
-            });
+        const today = new Date(new Date().toISOString().split("T")[0]);
+        const employeeUserIds = employees.map(emp => emp.userId);
 
-            if (!existingRecord) {
-                const attendanceEntity = new Attendance().toEntity(
-                    {
-                        userId: employee.userId,
-                        date: new Date(new Date().toISOString().split("T")[0]),
-                        status: AttendanceStatus.Default
-                    },
-                    undefined,
-                    { ...contextUser }
-                );
-
-                defaultRecords.push(attendanceEntity.toResponse());
-            } else {
-                defaultRecords.push(existingRecord.toResponse());
+        // Get all existing attendance records for today for all employees at once
+        const existingRecords = await this.attendanceRepository.where({
+            where: {
+                userId: In(employeeUserIds),
+                date: today
             }
+        });
+
+        // Create a map of existing records by userId for quick lookup
+        const existingRecordsArray = Array.isArray(existingRecords) ? existingRecords : (existingRecords ? [existingRecords] : []);
+        const existingRecordsMap = new Map(
+            existingRecordsArray.map(record => [record.userId, record])
+        );
+
+        // Filter employees who don't have attendance records for today
+        const employeesWithoutRecords = employees.filter(
+            emp => !existingRecordsMap.has(emp.userId)
+        );
+
+        // Prepare default attendance entities for bulk creation
+        const defaultAttendanceEntities = employeesWithoutRecords.map(employee => 
+            new Attendance().toEntity(
+                {
+                    userId: employee.userId,
+                    date: today,
+                    status: AttendanceStatus.Default
+                },
+                undefined,
+                { ...contextUser }
+            )
+        );
+
+        // Bulk create default records for employees without existing records
+        let newlyCreatedRecords: IAttendanceResponse[] = [];
+        if (defaultAttendanceEntities.length > 0) {
+            newlyCreatedRecords = await this.addMany(
+                defaultAttendanceEntities,
+                contextUser
+            );
         }
 
-        return defaultRecords;
+        // Return updated record count
+        return {
+            created: newlyCreatedRecords.length,
+            existing: (existingRecords ? (Array.isArray(existingRecords) ? existingRecords.length : 1) : 0)
+        };
     }
 
     public async status(contextUser: ITokenUser, request: IStatusRequest): Promise<IAttendanceResponse> {
@@ -107,8 +128,7 @@ export class AttendanceService extends Service<Attendance, IAttendanceResponse, 
                 let updateResponse = await this.attendanceRepository.partialUpdate(
                     existingAttendance.id,
                     {
-                        checkInTime: existingAttendance.checkInTime,
-                        status: existingAttendance.status // This will be 'Present' from helper method
+                        ...existingAttendance
                     },
                     { ...contextUser }
                 );
@@ -123,7 +143,8 @@ export class AttendanceService extends Service<Attendance, IAttendanceResponse, 
                 userId: contextUser.id ?? (() => { throw new AppError('User ID is required', '400'); })(),
                 date: request.date,
                 checkInTime: request.checkInTime,
-                status: AttendanceStatus.Present // Default status for new check-in
+                status: AttendanceStatus.Present, // Default status for new check-in
+                presentStatus: PresentStatus.CheckIn
             },
             undefined,
             { ...contextUser }
@@ -141,7 +162,8 @@ export class AttendanceService extends Service<Attendance, IAttendanceResponse, 
             where: {
                 userId: contextUser.id,
                 date: request.date,
-                checkOutTime: IsNull() // Changed from checkOut to checkOutTime
+                checkOutTime: IsNull(), // Changed from checkOut to checkOutTime
+                presentStatus: PresentStatus.CheckIn // Ensure we are checking out after check-in
             }
         });
 
@@ -156,9 +178,7 @@ export class AttendanceService extends Service<Attendance, IAttendanceResponse, 
         let checkOutResponse = await this.attendanceRepository.partialUpdate(
             latestAttendance.id,
             {
-                checkOutTime: latestAttendance.checkOutTime,
-                workingHours: latestAttendance.workingHours,
-                totalBreakTime: latestAttendance.totalBreakTime
+                ...latestAttendance,
             },
             { ...contextUser }
         );
@@ -167,6 +187,14 @@ export class AttendanceService extends Service<Attendance, IAttendanceResponse, 
     }
 
     public async get(contextUser?: ITokenUser, fetchRequest?: IFetchRequest<IAttendanceRequest>): Promise<IDataSourceResponse<IAttendanceResponse>> {
+
+        // Remove when proper cron job is implemented
+        // Automatically create default attendance records for all employees if not present for today
+        if (contextUser) {
+            let result = await this.defaultAttendanceRecord(contextUser);
+            console.log(`Default attendance records created: ${result.created}, Existing records: ${result.existing}`);
+        }
+
         // first check if contextUser is userId exist means only user can access his own attendance records
         if (contextUser && contextUser.role === 'employee') {
             // Create or modify fetchRequest to filter by userId

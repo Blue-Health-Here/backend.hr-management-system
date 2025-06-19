@@ -4,10 +4,16 @@ export enum AttendanceStatus {
     Present = 'Present',
     Absent = 'Absent',
     Late = 'Late',
-    HalfDay = 'Half Day',
-    OnLeave = 'On Leave',
+    HalfDay = 'HalfDay',
+    OnLeave = 'OnLeave',
     Holiday = 'Holiday',
-    DayOff = 'Day Off',
+    DayOff = 'DayOff',
+}
+
+export enum PresentStatus {
+    CheckIn = 'CheckIn',
+    CheckOut = 'CheckOut',
+    OnBreak = 'OnBreak',
 }
 
 // Polymorphic Type Enum for Absence Reason
@@ -18,11 +24,11 @@ export enum AbsenceReasonType {
 
 // Break Type Enum
 export enum BreakType {
-    Lunch = 'Lunch Break',
-    Tea = 'Tea Break',
-    Meeting = 'Meeting Break',
-    Prayer = 'Prayer Break',
-    Personal = 'Personal Break',
-    Smoking = 'Smoking Break',
+    Lunch = 'LunchBreak',
+    Tea = 'TeaBreak',
+    Meeting = 'MeetingBreak',
+    Prayer = 'PrayerBreak',
+    Personal = 'PersonalBreak',
+    Smoking = 'SmokingBreak',
     Other = 'Other'
 }

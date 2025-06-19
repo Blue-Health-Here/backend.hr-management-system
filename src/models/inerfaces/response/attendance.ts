@@ -1,6 +1,6 @@
 import { AttendanceStatus, BreakType, EmployeeStatus } from "../../enums";
 import { ICompanyResponseBase } from "./response-base";
-import { AbsenceReasonType } from '../../enums/attendance.enum';
+import { AbsenceReasonType, PresentStatus } from '../../enums/attendance.enum';
 import { User } from '../../../entities/user';
 import { IUserResponse } from "./user";
 
@@ -11,6 +11,8 @@ export interface IAttendanceResponse extends ICompanyResponseBase {
     checkInTime?: String;
     checkOutTime?: String;
     status: AttendanceStatus;
+    presentStatus?: PresentStatus;
+    employeeStatus?: EmployeeStatus;
     workingHours?: number;
     totalBreakTime?: number;
     lateMinutes?: number;
