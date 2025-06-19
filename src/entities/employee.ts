@@ -152,4 +152,19 @@ export class Employee extends CompanyEntityBase implements IToResponseBase<Emplo
         const diffMonths = Math.ceil(diffTime / (1000 * 60 * 60 * 24 * 30));
         return diffMonths;
     }
+
+    // Enhanced onStatusChange method with better logging
+    onStatusChange(newStatus: EmployeeStatus): void {
+        // Update the status
+        this.status = newStatus;
+
+        // If the new status is retired, resigned, or terminated, set active to false
+        if ([EmployeeStatus.Retired, EmployeeStatus.Resigned, EmployeeStatus.Terminated].includes(newStatus)) {
+            this.active = false;
+        } else {
+            // For other statuses (like Active, OnLeave, etc.), you might want to set active to true
+            this.active = true;
+        }
+
+    }
 }

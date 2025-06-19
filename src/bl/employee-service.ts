@@ -56,7 +56,7 @@ export class EmployeeService extends Service<Employee, IEmployeeResponse, IEmplo
         await this.userRepository.invokeDbOperations(user, Actions.Add);
 
         // Create employee entity from request
-        const employee = new Employee().toEntity(
+        let employee = new Employee().toEntity(
             {
                 ...employeeRequest,
                 userId: user.id,
@@ -65,6 +65,10 @@ export class EmployeeService extends Service<Employee, IEmployeeResponse, IEmplo
             undefined,
             contextUser
         );
+
+        if (employeeRequest.status) {
+            employee.onStatusChange(employeeRequest.status);
+        }
 
         let employeeCreated = await this.employeeRepository.invokeDbOperations(employee, Actions.Add);
 
@@ -111,12 +115,26 @@ export class EmployeeService extends Service<Employee, IEmployeeResponse, IEmplo
             await this.userRepository.partialUpdate(existingUser.id, userUpdateData as any, contextUser);
         }
 
-        // Update employee entity if there are employee-specific fields to update
-        if (Object.keys(employeeRequest).length > 0) {
-             await super.update(existingEmployee.id, employeeRequest as any, contextUser);
+        // Prepare employee update data
+        let finalEmployeeUpdateData = { ...employeeRequest } as Partial<Employee>;
+
+        // Handle status change logic
+        if (employeeRequest.status) {
+            // Call the status change method to update the entity state
+            existingEmployee.onStatusChange(employeeRequest.status);
+            
+            // Include the updated active field in the update data
+            finalEmployeeUpdateData.active = existingEmployee.active;
+            
+            console.log(`Employee status changed to ${employeeRequest.status}, active set to ${existingEmployee.active}`);
         }
 
-        // If no employee fields to update, just return the existing employee with updated user data
+        // Update employee entity if there are employee-specific fields to update
+        if (Object.keys(finalEmployeeUpdateData).length > 0) {
+            await super.update(existingEmployee.id, finalEmployeeUpdateData as any, contextUser);
+        }
+
+        // Return the refreshed employee data
         const refreshedEmployee = await this.employeeRepository.firstOrDefault({
             where: { id },
         });
