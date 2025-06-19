@@ -12,20 +12,43 @@ interface ValidationConfig {
   params?: ZodSchema;
 }
 
-// Helper function to validate a single field type
+// Helper function to validate a single field type with enhanced error handling
 const validateField = async (
   schema: ZodSchema, 
   data: any, 
   type: ValidationType
 ): Promise<Array<{ field: string; message: string; type: ValidationType }>> => {
+  // Add debugging information
+  console.log(`Validating ${type}:`, JSON.stringify(data, null, 2));
+  
+  // Check if data is undefined/null for body validation
+  if (type === 'body' && (data === undefined || data === null)) {
+    return [{
+      field: 'root',
+      message: 'Request body is missing or empty',
+      type
+    }];
+  }
+
   const parsed = await schema.safeParseAsync(data);
   
   if (!parsed.success) {
-    return parsed.error.errors.map(err => ({
-      field: err.path.join('.'),
-      message: err.message,
-      type
-    }));
+    return parsed.error.errors.map(err => {
+      // Enhanced error field handling
+      const fieldPath = err.path.length > 0 ? err.path.join('.') : 'root';
+      
+      // Enhanced error message
+      let message = err.message;
+      if (err.code === 'invalid_type') {
+        message = `Expected ${err.expected}, but received ${err.received}`;
+      }
+      
+      return {
+        field: fieldPath,
+        message: message,
+        type
+      };
+    });
   }
   
   return [];
@@ -64,17 +87,20 @@ export const payloadValidator = (config: ValidationConfig | ZodSchema): preHandl
 
     // If there are any validation errors, handle them
     if (errors.length > 0) {
+      // Enhanced error logging
+      console.error('Validation errors:', errors);
+      
       const request = req as ExtendedRequest;
       if (request.activityLog) {
         await request.activityLog.logEnd('error', JSON.stringify({
           code: 400,
-          message: 'Bad Request',
+          message: 'Validation Failed',
           errors
         }));
         request.activityLog = undefined;
       }
 
-      throw new AppError('Bad Request', '400', errors);
+      throw new AppError('Validation Failed', '400', errors);
     }
   };
 };
