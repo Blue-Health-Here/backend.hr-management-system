@@ -1,3 +1,5 @@
+import moment from 'moment-timezone';
+
 import { inject, injectable } from "tsyringe";
 import { AttendanceRepository, EmployeeRepository } from "../dal";
 import { IsNull, In } from "typeorm";
@@ -24,7 +26,9 @@ export class AttendanceService extends Service<Attendance, IAttendanceResponse, 
             }
         });
 
-        const today = new Date(new Date().toISOString().split("T")[0]);
+        // Set 'today' to midnight in Pakistan timezone
+        const today = new Date(moment().tz('Asia/Karachi').format('YYYY-MM-DD'));
+
         const employeeUserIds = employees.map(emp => emp.userId);
 
         // Get all existing attendance records for today for all employees at once
@@ -35,19 +39,16 @@ export class AttendanceService extends Service<Attendance, IAttendanceResponse, 
             }
         });
 
-        // Create a map of existing records by userId for quick lookup
         const existingRecordsArray = Array.isArray(existingRecords) ? existingRecords : (existingRecords ? [existingRecords] : []);
         const existingRecordsMap = new Map(
             existingRecordsArray.map(record => [record.userId, record])
         );
 
-        // Filter employees who don't have attendance records for today
         const employeesWithoutRecords = employees.filter(
             emp => !existingRecordsMap.has(emp.userId)
         );
 
-        // Prepare default attendance entities for bulk creation
-        const defaultAttendanceEntities = employeesWithoutRecords.map(employee => 
+        const defaultAttendanceEntities = employeesWithoutRecords.map(employee =>
             new Attendance().toEntity(
                 {
                     userId: employee.userId,
@@ -59,7 +60,6 @@ export class AttendanceService extends Service<Attendance, IAttendanceResponse, 
             )
         );
 
-        // Bulk create default records for employees without existing records
         let newlyCreatedRecords: IAttendanceResponse[] = [];
         if (defaultAttendanceEntities.length > 0) {
             newlyCreatedRecords = await this.addMany(
@@ -68,10 +68,9 @@ export class AttendanceService extends Service<Attendance, IAttendanceResponse, 
             );
         }
 
-        // Return updated record count
         return {
             created: newlyCreatedRecords.length,
-            existing: (existingRecords ? (Array.isArray(existingRecords) ? existingRecords.length : 1) : 0)
+            existing: existingRecordsArray.length
         };
     }
 
